@@ -45,7 +45,14 @@ function Navigation({ isLoaded }) {
   }, [sessionUser, dispatch])
 
   useEffect(() => {
+    const userId = sessionUser.userId;
 
+    socket.on("updateUser", (user) => {
+
+      dispatch(userOnlineStatusUpdate(user))
+    })
+
+    return () => socket.disconnect()
 
   }, [sessionUser])
   if (!isLoaded) return (<Redirect to="/" />)

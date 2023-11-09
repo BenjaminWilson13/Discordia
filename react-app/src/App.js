@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Route, Switch, Redirect } from "react-router-dom";
 import { authenticate } from "./store/session";
 import Navigation from "./components/Navigation";
@@ -26,21 +26,16 @@ function App() {
     <>
       {isLoaded && (
         <>
-          {/* <Navigation isLoaded={isLoaded} /> */}
-          {/* <TitleBar /> */}
-
           <Switch>
             <Route exact path="/">
               <LandingPage />
             </Route>
             <ProtectedRoute exact path="/home">
-
               <Navigation isLoaded={isLoaded} />
               <DirectMessages />
               <AllServersList />
               <DeveloperList />
               <LogoutNav />
-              {/* <CreateConversation /> */}
             </ProtectedRoute>
             <ProtectedRoute exact path="/conversations">
               <Navigation isLoaded={isLoaded} />
@@ -52,7 +47,49 @@ function App() {
               <Navigation isLoaded={isLoaded} />
               <DirectMessages />
               <ConversationMessages />
-              <DeveloperList />
+              <DeveloperList /> 
+              <LogoutNav />
+            </ProtectedRoute>
+            <ProtectedRoute exact path="/voiceChannel/:serverId/:channelId">
+              <Navigation isLoaded={isLoaded} />
+              <ChannelList />
+              <VoiceChannels />
+              <ServerUserList />
+              <LogoutNav />
+            </ProtectedRoute>
+            <ProtectedRoute exact path="/voiceChannel/:serverId/:channelId">
+              <Navigation isLoaded={isLoaded} />
+              <ChannelList />
+              <VoiceChannels />
+              <ServerUserList />
+              <LogoutNav />
+            </ProtectedRoute>
+            <ProtectedRoute exact path="/voiceChannel/:serverId/:channelId">
+              <Navigation isLoaded={isLoaded} />
+              <ChannelList />
+              <VoiceChannels />
+              <ServerUserList />
+              <LogoutNav />
+            </ProtectedRoute>
+            <ProtectedRoute exact path="/voiceChannel/:serverId/:channelId">
+              <Navigation isLoaded={isLoaded} />
+              <ChannelList />
+              <VoiceChannels />
+              <ServerUserList />
+              <LogoutNav />
+            </ProtectedRoute>
+            <ProtectedRoute exact path="/voiceChannel/:serverId/:channelId">
+              <Navigation isLoaded={isLoaded} />
+              <ChannelList />
+              <VoiceChannels />
+              <ServerUserList />
+              <LogoutNav />
+            </ProtectedRoute>
+            <ProtectedRoute exact path="/voiceChannel/:serverId/:channelId">
+              <Navigation isLoaded={isLoaded} />
+              <ChannelList />
+              <VoiceChannels />
+              <ServerUserList />
               <LogoutNav />
             </ProtectedRoute>
             <ProtectedRoute exact path="/channels/:serverId/:channelId">

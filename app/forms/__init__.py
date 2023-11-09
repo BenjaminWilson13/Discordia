@@ -9,4 +9,6 @@ from .channel_message_form import ChannelMessageForm
 from .direct_message_form import DirectMessageForm
 from .server_form import ServerForm
 from .private_channel_form import PrivateChannelForm
+from .voice_channels_form import VoiceChannelForm
 from .update_profile_image import ProfileImage
+from .voice_channels_form import VoiceChannelForm
