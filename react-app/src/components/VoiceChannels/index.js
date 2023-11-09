@@ -6,155 +6,114 @@ import UpdateMessageModal from "../UpdateMessageModal";
 import MessageDetails from "../MessageDetails";
 import OpenModalButton from "../OpenModalButton";
 import socketio from "socket.io-client";
+import { socket } from "../../socket";
+import "./VoiceChannels.css"
+import { getApiIceServers } from "../../store/voiceChannels";
 
 
 
 export default function VoiceChannels() {
     const { serverId, channelId } = useParams();
-    const localUsername = getRandomIntInclusive(1, 100);
-    const roomName = channelId;
     const localVideoRef = useRef(null);
     const remoteVideoRef = useRef(null);
-    const [remoteVideos, setRemoteVideos] = useState([])
+    const [rtcPeers, setRtcPeers] = useState([])
     const currentUser = useSelector((state) => state.session.user);
+    const [videoToggle, setVideoToggle] = useState(false);
+    const iceServers = useSelector((state) => state.voiceChannels.iceServers);
+    const dispatch = useDispatch();
+    let pc;
 
-    useEffect(() => {
-        socket.emit("userJoinedVoiceChannel", {
-            "userId": currentUser.userId, 
-            serverId, 
-            channelId
+
+
+
+    async function newMemberAndOffer(data1) {
+        pc = new RTCPeerConnection({ iceServers })
+        const video = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+            video: { width: 1920, height: 1080 }
         })
-        return () => {
-            socket.emit("userLeavingChannel", {
-                "userId": currentUser.userId, 
-                serverId, 
-                channelId
-            })
+        for (const track of video.getTracks()) {
+            pc.addTrack(track, video)
         }
-    }, [])
-    function getRandomIntInclusive(min, max) {
-        min = Math.ceil(min);
-        max = Math.floor(max);
-        return Math.floor(Math.random() * (max - min + 1) + min); // The maximum is inclusive and the minimum is inclusive
+        const offer = await pc.createOffer();
+        pc.setLocalDescription(offer);
+        socket.emit("offer", { "offer": offer, "offerer": { "userId": currentUser.userId, channelId, serverId }, 'answerer': data1 })
+    }
+
+    window.onbeforeunload = function (event) {
+        return socket.emit("userLeavingChannel", {
+            "userId": currentUser.userId,
+            'serverId': parseInt(serverId),
+            'channelId': parseInt(channelId)
+        })
     }
 
 
-    
+    socket.on('answer', (data) => {
+        console.log(data, 'answer')
+        pc.setRemoteDescription(data.answer)
+    })
 
-    let pc; // For RTCPeerConnection Object
-
-    const sendData = (data) => {
-        socket.emit("data", {
-            username: localUsername,
-            room: roomName,
-            data: data,
-        });
-    };
-
-    const startConnection = () => {
-        navigator.mediaDevices
-            .getUserMedia({
-                audio: true,
-                video: false,
-            })
-            .then((stream) => {
-                console.log("Local Stream found");
-                localVideoRef.current.srcObject = stream;
-                socket.emit("join", { username: localUsername, room: roomName });
-            })
-            .catch((error) => {
-                console.error("Stream not found: ", error);
-            });
-    };
-
-    const onIceCandidate = (event) => {
-        if (event.candidate) {
-            console.log("Sending ICE candidate");
-            sendData({
-                type: "candidate",
-                candidate: event.candidate,
-            });
-        }
-    };
-
-    const onTrack = (event) => {
-        console.log("Adding remote track");
-        remoteVideoRef.current.srcObject = event.streams[0];
-    };
-
-    const createPeerConnection = () => {
-        try {
-            pc = new RTCPeerConnection({});
-            pc.onicecandidate = onIceCandidate;
-            pc.ontrack = onTrack;
-            const localStream = localVideoRef.current.srcObject;
-            for (const track of localStream.getTracks()) {
-                pc.addTrack(track, localStream);
-            }
-            console.log("PeerConnection created");
-        } catch (error) {
-            console.error("PeerConnection failed: ", error);
-        }
-    };
-
-    const setAndSendLocalDescription = (sessionDescription) => {
-        pc.setLocalDescription(sessionDescription);
-        console.log("Local description set");
-        sendData(sessionDescription);
-    };
-
-    const sendOffer = () => {
-        console.log("Sending offer");
-        pc.createOffer().then(setAndSendLocalDescription, (error) => {
-            console.error("Send offer failed: ", error);
-        });
-    };
-
-    const sendAnswer = () => {
-        console.log("Sending answer");
-        pc.createAnswer().then(setAndSendLocalDescription, (error) => {
-            console.error("Send answer failed: ", error);
-        });
-    };
-
-    const signalingDataHandler = (data) => {
-        if (data.type === "offer") {
-            createPeerConnection();
-            pc.setRemoteDescription(new RTCSessionDescription(data));
-            sendAnswer();
-        } else if (data.type === "answer") {
-            pc.setRemoteDescription(new RTCSessionDescription(data));
-        } else if (data.type === "candidate") {
-            pc.addIceCandidate(new RTCIceCandidate(data.candidate));
-        } else {
-            console.log("Unknown Data");
-        }
-    };
-
-    
-    socket.on("ready", () => {
-        console.log("Ready to Connect!");
-        createPeerConnection();
-        sendOffer();
-    });
-
-    socket.on("data", (data) => {
-        console.log("Data received: ", data);
-        signalingDataHandler(data);
-    });
     useEffect(() => {
-        startConnection();
-        return function cleanup() {
-            pc?.close();
-        };
-    }, []);
+        socket.on('newUserJoining', (data) => {
+            if (data.error) return;
+            console.log(data, 'newUserJoining')
+            newMemberAndOffer(data);
+        })
+
+        socket.on('offer', async (data) => {
+            console.log(data)
+            pc = new RTCPeerConnection({ iceServers });
+            pc.setRemoteDescription(data.offer);
+            const answer = await pc.createAnswer(data.answer);
+            pc.setLocalDescription(answer)
+            socket.emit("answer", {...data, answer})
+        })
+
+        if (!Object.keys(iceServers).length) {
+            dispatch(getApiIceServers());
+        }
+
+        socket.emit("userJoinedVoiceChannel", {
+            "userId": currentUser.userId,
+            'serverId': parseInt(serverId),
+            'channelId': parseInt(channelId)
+        })
+
+
+        return () => {
+            socket.emit("userLeavingChannel", {
+                "userId": currentUser.userId,
+                'serverId': parseInt(serverId),
+                'channelId': parseInt(channelId)
+            })
+        }
+    }, [])
+
+
+    function clickEvent(event) {
+        event.preventDefault();
+        if (videoToggle === true) {
+            localVideoRef.current.srcObject = null;
+            setVideoToggle(false);
+        } else {
+            navigator.mediaDevices.getUserMedia({
+                audio: true,
+                video: true
+            }).then((res) => {
+                localVideoRef.current.srcObject = res;
+                setVideoToggle(true);
+            })
+        }
+    }
 
     return (
-        <div>
-            <label>{"Username: " + localUsername}</label>
-            <label>{"Room Id: " + roomName}</label>
-            <video autoPlay muted playsInline ref={localVideoRef} />
+        <div id="video-box" className="socket-container">
+            <label>{"Username: " + currentUser.userId}</label>
+            <label>{"Room Id: " + channelId}</label>
+            <video className="videoBox" autoPlay playsInline ref={localVideoRef} />
             <video autoPlay playsInline ref={remoteVideoRef} />
+            <button onClick={clickEvent}>{videoToggle ? "Turn off Video" : "Start Video"}</button>
         </div>
     );
 }

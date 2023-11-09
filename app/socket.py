@@ -16,14 +16,53 @@ else:
 
 # create your socketIO instance
 socketio = SocketIO(cors_allowed_origin=origins)
+userList = {}
+
+@socketio.on('answer')
+def answer(message): 
+    offererRoom = str(message['offerer']['userId']) + 'user'
+    print(message, 'answer', offererRoom)
+    emit('answer', message, to=offererRoom)
+
+@socketio.on("offer")
+def offer(message): 
+    '''
+        {'offer': {OFFEROBJECTHOLYCRAPIT'SHUGE}, 
+        'offerer': {'userId': 1, 'channelId': '4', 'serverId': '4'}, 
+        'answerer': {'userId': 1, 'serverId': 4, 'channelId': 4}}
+    '''
+    
+    answererRoom = str(message['answerer']['userId']) + 'user'
+    print(message, 'offer', 'answererRoom')
+
+    emit("offer", message, to=answererRoom)
 
 @socketio.on("userJoinedVoiceChannel")
 def newUser(message): 
+    userListString = 's{}c{}'.format(message['serverId'], message['channelId'])
+    join_room(message['channelId'])
+    join_room(str(current_user.id) + 'user')
+    if (userListString not in userList or userList[userListString] <= 0): 
+        userList[userListString] = 1
+        print ('returning', userList)
+        emit('newUserJoining', {'error': 'no users in channel'})
+        return
     print("Joining Channel", message)
+    print(message['channelId'], str(current_user.id) + ' user')
+    emit("newUserJoining", message, skip_sid=request.sid, broadcast=True)
 
 @socketio.on("userLeavingChannel")
 def leaveChannel(message): 
-    print("Leaving Channel", message)
+    userListString = 's{}c{}'.format(message['serverId'], message['channelId'])
+    userList[userListString] -= 1
+
+    print("Leaving Channel", message, userList)
+    leave_room(message['channelId'])
+
+
+
+
+
 
 @socketio.on('join')
 def join(message):
@@ -48,23 +87,12 @@ def default_error_handler(e):
 
 
 
-online_users = {}
 
 
-
-
-@socketio.on("newUser")
-def online_user(data):
-
-    print(online_users)
-    print(data)
-    #data = <userId>
-    online_users[data] = round(time()*1000)
-    user = User.query.get(data)
-    user.status = "online"
-
-    emit("updateUser", [data, "online"], broadcast=True)
-
+@socketio.event
+def connect(): 
+    current_user.status = "online"
+    emit("updateUser", [current_user.id, "online"], broadcast=True)
     db.session.commit()
 
 @socketio.event

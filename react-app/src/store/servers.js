@@ -209,7 +209,6 @@ export default function reducer(state = initialState, action) {
         case GET_ALL_SERVERS:
             let serverArr = action.data.servers
             for (let server of serverArr) {
-
                 newState.ServerList[server.id] = server
             }
             return newState

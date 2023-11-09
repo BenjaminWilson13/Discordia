@@ -10,7 +10,6 @@ function EditUserIcon() {
     const [username, setUsername] = useState(null);
     const [errors, setErrors] = useState(null);
     const sessionUser = useSelector(state => state.session.user);
-    const [username, setUsername] = useState(sessionUser.username);
     const [isLoading, setIsLoading] = useState(false)
 
     const { closeModal } = useModal();
