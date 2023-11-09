@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useHistory } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import "./ChannelList.css";
@@ -22,6 +22,7 @@ export default function ChannelList() {
   const voiceChannels = useSelector((state) => state.voiceChannels.channels);
 
   const href = window.location.href; 
+
 
   useEffect(() => {
     if (!Object.keys(allServers).length) {
