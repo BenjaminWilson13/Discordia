@@ -19,6 +19,11 @@ else:
 socketio = SocketIO(cors_allowed_origin=origins)
 userList = {}
 
+@socketio.on('iceCandidate')
+def ice_candidate(message): 
+    print(message)
+    emit('iceCandidate', message ,to=message['to'], skip_sid=request.sid)
+
 @socketio.on('answer')
 def answer(message): 
     offererRoom = str(message['offerer']['userId']) + 'user'

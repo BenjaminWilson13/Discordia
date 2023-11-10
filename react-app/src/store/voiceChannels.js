@@ -49,8 +49,7 @@ export default function reducer (state = initialState, action) {
         case GET_VOICE_CHANNELS_BY_SERVER_ID: 
             newState.channels = {...action.payload}
             return newState
-        case GET_ICE_SERVERS: 
-            console.log(action.payload)
+        case GET_ICE_SERVERS:
             newState.iceServers = [...action.payload]
             return newState; 
         default: 

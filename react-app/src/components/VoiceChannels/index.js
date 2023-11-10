@@ -16,58 +16,119 @@ export default function VoiceChannels() {
     const { serverId, channelId } = useParams();
     const localVideoRef = useRef(null);
     const remoteVideoRef = useRef(null);
-    const [rtcPeers, setRtcPeers] = useState([])
+    const rtcPeers = useRef({});
     const currentUser = useSelector((state) => state.session.user);
     const [videoToggle, setVideoToggle] = useState(false);
     const iceServers = useSelector((state) => state.voiceChannels.iceServers);
     const dispatch = useDispatch();
-    let pc;
 
 
 
 
     async function newMemberAndOffer(data1) {
-        pc = new RTCPeerConnection({ iceServers })
-        const video = await navigator.mediaDevices.getUserMedia({
-            audio: true,
-            video: { width: 1920, height: 1080 }
-        })
-        for (const track of video.getTracks()) {
-            pc.addTrack(track, video)
+        let pc = new RTCPeerConnection({ iceServers })
+        pc.ontrack = event => {
+            console.log(event)
+            const videoBox = document.getElementById('video-box');
+            const video = document.createElement('video');
+            video.srcObject = event.streams[0];
+            videoBox.appendChild(video);
+        }
+        pc.onsignalingstatechange = async (event) => {
+            switch (pc.signalingState) {
+                case "stable": 
+                    const video = await navigator.mediaDevices.getUserMedia({
+                        audio: false,
+                        video: { width: 1920, height: 1080 }
+                    })
+                    for (const track of video.getTracks()) {
+                        console.log(track)  
+                        pc.addTrack(track, video)
+                    }
+                    break; 
+                    
+            }
         }
         const offer = await pc.createOffer();
-        pc.setLocalDescription(offer);
+        await pc.setLocalDescription(offer);
+        rtcPeers.current[data1.userId] = { "offer": offer, 'offerPC': pc, "offerer": { "userId": currentUser.userId, channelId, serverId }, 'answerer': data1 }
+        
+        pc.onicecandidate = event => {
+            if (event.candidate !== null) {
+                socket.emit('iceCandidate', { 'candidate': event.candidate, 'to': currentUser.userId })
+            }
+        }
         socket.emit("offer", { "offer": offer, "offerer": { "userId": currentUser.userId, channelId, serverId }, 'answerer': data1 })
     }
 
-    window.onbeforeunload = function (event) {
-        return socket.emit("userLeavingChannel", {
-            "userId": currentUser.userId,
-            'serverId': parseInt(serverId),
-            'channelId': parseInt(channelId)
-        })
+    // window.onbeforeunload = function (event) {
+    //     return socket.emit("userLeavingChannel", {
+    //         "userId": currentUser.userId,
+    //         'serverId': parseInt(serverId),
+    //         'channelId': parseInt(channelId)
+    //     })
+    // }
+    function iceCandidate(data) {
+        
+        if (currentUser.userId !== data.to) {
+            try {
+                rtcPeers.current[data.to].answerPC.addIceCandidate(new RTCIceCandidate(data.candidate))
+            } catch (e) {
+                console.error(e);
+                rtcPeers.current[data.to].offerPC.addIceCandidate(new RTCIceCandidate(data.candidate))
+            }
+        }
     }
 
 
-    socket.on('answer', (data) => {
-        console.log(data, 'answer')
-        pc.setRemoteDescription(data.answer)
-    })
-
     useEffect(() => {
+        socket.on('iceCandidate', (data) => {
+            
+            iceCandidate(data);
+        })
+        socket.on('answer', (data) => {
+            rtcPeers.current[data.answerer.userId].offerPC.setRemoteDescription(new RTCSessionDescription(data.answer))
+        })
+
         socket.on('newUserJoining', (data) => {
             if (data.error) return;
-            console.log(data, 'newUserJoining')
             newMemberAndOffer(data);
         })
 
         socket.on('offer', async (data) => {
-            console.log(data)
-            pc = new RTCPeerConnection({ iceServers });
-            pc.setRemoteDescription(data.offer);
+            let pc = new RTCPeerConnection({ iceServers });
+            await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+            pc.ontrack = event => {
+                console.log(event)
+                const videoBox = document.getElementById('video-box');
+                const video = document.createElement('video');
+                video.srcObject = event.streams[0];
+                videoBox.appendChild(video);
+            }
+            
+            pc.onsignalingstatechange = async (event) => {
+                switch (pc.signalingState) {
+                    case "stable": 
+                        const video = await navigator.mediaDevices.getUserMedia({
+                            audio: true,
+                            video: false
+                        })
+                        for (const track of video.getTracks()) {
+                            console.log(video, track)
+                            pc.addTrack(track, video)
+                        }
+                        break;  
+                }
+            }
             const answer = await pc.createAnswer(data.answer);
-            pc.setLocalDescription(answer)
-            socket.emit("answer", {...data, answer})
+            await pc.setLocalDescription(answer)
+            rtcPeers.current[data.offerer.userId] = { ...data, answer, 'answerPC': pc }
+            pc.onicecandidate = event => {
+                if (event.candidate !== null) {
+                    socket.emit('iceCandidate', { 'candidate': event.candidate, 'to': currentUser.userId })
+                }
+            }
+            socket.emit("answer", { ...data, answer })
         })
 
         if (!Object.keys(iceServers).length) {
