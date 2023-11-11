@@ -29,6 +29,7 @@ export const getApiIceServers = () => async (dispatch) => {
     const res = await fetch('/api/voiceChannels/ice_servers'); 
     const data = await res.json(); 
     if (res.ok) {
+        console.log(data)
         dispatch(getIceServers(data)); 
         return null; 
     } else {

@@ -24,6 +24,32 @@ export default function VoiceChannels() {
     const dispatch = useDispatch();
 
     async function newMemberAndOffer(data) {
+        const iceServers = [
+            {
+                urls: "stun:stun.relay.metered.ca:80",
+            },
+            {
+                urls: "turn:a.relay.metered.ca:80",
+                username: "f8da8920e5a37b37131a989b",
+                credential: "4IBYYZ5g8t+M2bkP",
+            },
+            {
+                urls: "turn:a.relay.metered.ca:80?transport=tcp",
+                username: "f8da8920e5a37b37131a989b",
+                credential: "4IBYYZ5g8t+M2bkP",
+            },
+            {
+                urls: "turn:a.relay.metered.ca:443",
+                username: "f8da8920e5a37b37131a989b",
+                credential: "4IBYYZ5g8t+M2bkP",
+            },
+            {
+                urls: "turn:a.relay.metered.ca:443?transport=tcp",
+                username: "f8da8920e5a37b37131a989b",
+                credential: "4IBYYZ5g8t+M2bkP",
+            },
+        ]
+
         console.log(data)
         console.log(iceServers)
         const video = await navigator.mediaDevices.getUserMedia({
@@ -31,15 +57,43 @@ export default function VoiceChannels() {
             audio: false
         })
 
-        const pc = new Peer({ initiator: true, stream: video })
+        const pc = new Peer({
+            initiator: true, stream: video, config: {
+                iceServers: [
+                    {
+                        urls: "stun:stun.relay.metered.ca:80",
+                    },
+                    {
+                        urls: "turn:a.relay.metered.ca:80",
+                        username: "f8da8920e5a37b37131a989b",
+                        credential: "4IBYYZ5g8t+M2bkP",
+                    },
+                    {
+                        urls: "turn:a.relay.metered.ca:80?transport=tcp",
+                        username: "f8da8920e5a37b37131a989b",
+                        credential: "4IBYYZ5g8t+M2bkP",
+                    },
+                    {
+                        urls: "turn:a.relay.metered.ca:443",
+                        username: "f8da8920e5a37b37131a989b",
+                        credential: "4IBYYZ5g8t+M2bkP",
+                    },
+                    {
+                        urls: "turn:a.relay.metered.ca:443?transport=tcp",
+                        username: "f8da8920e5a37b37131a989b",
+                        credential: "4IBYYZ5g8t+M2bkP",
+                    },
+                ]
+            }
+        })
         pc.on('signal', signal => {
             socket.emit('signal', { 'to': data.userId, signal, 'from': currentUser.userId })
         })
 
         pc.on('connect', () => {
-            console.log('connected!')
+            console.log('connected!', iceServers)
             const videoWindow = document.getElementById('localVideo')
-            if('srcObject' in videoWindow) {
+            if ('srcObject' in videoWindow) {
                 videoWindow.srcObject = video
             } else {
                 videoWindow.src = window.URL.createObjectURL(video)
@@ -55,17 +109,17 @@ export default function VoiceChannels() {
         })
 
         pc.on('stream', stream => {
-            const videoWindow = document.createElement('video'); 
-            videoWindow.setAttribute('playsinline', 'true') 
+            const videoWindow = document.createElement('video');
+            videoWindow.setAttribute('playsinline', 'true')
             videoWindow.setAttribute('autoplay', 'true')
-            if('srcObject' in videoWindow) {
+            if ('srcObject' in videoWindow) {
                 videoWindow.srcObject = stream
             } else {
                 videoWindow.src = window.URL.createObjectURL(stream)
             }
             const videoBox = document.getElementById('video-box')
             videoBox.appendChild(videoWindow);
-            videoWindow.play(); 
+            videoWindow.play();
         })
 
         rtcPeers.current[data.userId] = pc;
@@ -77,7 +131,35 @@ export default function VoiceChannels() {
             video: true,
             audio: false
         })
-        const pc = new Peer({ initiator: false, stream: video });
+        const pc = new Peer({
+            initiator: false, stream: video, config: {
+                iceServers: [
+                    {
+                        urls: "stun:stun.relay.metered.ca:80",
+                    },
+                    {
+                        urls: "turn:a.relay.metered.ca:80",
+                        username: "f8da8920e5a37b37131a989b",
+                        credential: "4IBYYZ5g8t+M2bkP",
+                    },
+                    {
+                        urls: "turn:a.relay.metered.ca:80?transport=tcp",
+                        username: "f8da8920e5a37b37131a989b",
+                        credential: "4IBYYZ5g8t+M2bkP",
+                    },
+                    {
+                        urls: "turn:a.relay.metered.ca:443",
+                        username: "f8da8920e5a37b37131a989b",
+                        credential: "4IBYYZ5g8t+M2bkP",
+                    },
+                    {
+                        urls: "turn:a.relay.metered.ca:443?transport=tcp",
+                        username: "f8da8920e5a37b37131a989b",
+                        credential: "4IBYYZ5g8t+M2bkP",
+                    },
+                ]
+            }
+        });
         pc.signal(data.signal)
         console.log(data)
 
@@ -89,7 +171,7 @@ export default function VoiceChannels() {
             console.log('connected!')
             pc.write('testtesttest')
             const videoWindow = document.getElementById('localVideo')
-            if('srcObject' in videoWindow) {
+            if ('srcObject' in videoWindow) {
                 videoWindow.srcObject = video
             } else {
                 videoWindow.src = window.URL.createObjectURL(video)
@@ -105,17 +187,17 @@ export default function VoiceChannels() {
         })
 
         pc.on('stream', stream => {
-            const videoWindow = document.createElement('video'); 
-            videoWindow.setAttribute('playsinline', 'true') 
-            videoWindow.setAttribute('autoplay', 'true') 
-            if('srcObject' in videoWindow) {
+            const videoWindow = document.createElement('video');
+            videoWindow.setAttribute('playsinline', 'true')
+            videoWindow.setAttribute('autoplay', 'true')
+            if ('srcObject' in videoWindow) {
                 videoWindow.srcObject = stream
             } else {
                 videoWindow.src = window.URL.createObjectURL(stream)
             }
             const videoBox = document.getElementById('video-box')
             videoBox.appendChild(videoWindow);
-            videoWindow.play(); 
+            videoWindow.play();
         })
 
         rtcPeers.current[data.from] = pc;
@@ -123,7 +205,7 @@ export default function VoiceChannels() {
     }
 
     useEffect(() => {
-        if (!Object.keys(iceServers).length) {
+        if (iceServers.length) {
             dispatch(getApiIceServers());
         }
 
