@@ -25,7 +25,7 @@ export default function VoiceChannels() {
 
     function newMemberAndOffer (data) {
         console.log(data)
-
+        console.log(iceServers)
         const pc = new Peer({initiator: true})
         pc.on('signal', signal => {
             socket.emit('signal', { 'to': data.userId, signal, 'from': currentUser.userId})
@@ -37,12 +37,17 @@ export default function VoiceChannels() {
         pc.on('data', data => {
             console.log(data)
         })
+
+        pc.on('error', error => {
+            console.log(error)
+        })
+
         rtcPeers.current[data.userId] = pc; 
         console.log(rtcPeers); 
     }
 
     function newOffer (data) {
-        const pc = new Peer(); 
+        const pc = new Peer({initiator: false}); 
         pc.signal(data.signal)
         console.log(data)
         pc.on('signal', (signal) => {
@@ -50,14 +55,19 @@ export default function VoiceChannels() {
         })
         pc.on('connect', () => {
             console.log('connected!')
+            pc.write('testtesttest')
         })
 
         pc.on('data', data => {
             console.log(data)
         })
 
+        pc.on('error', error => {
+            console.log(error)
+        })
+
         rtcPeers.current[data.from] = pc; 
-        console.log(rtcPeers); 
+        console.log(rtcPeers.current); 
     }
 
     useEffect(() => {
@@ -77,12 +87,12 @@ export default function VoiceChannels() {
         })
 
         socket.on('signal', (data) => {
-            console.log(data)
-            if (!rtcPeers[data.userId]) {
+            console.log(rtcPeers.current[data.from], data)
+            if (!rtcPeers.current[data.from]) {
                 newOffer(data); 
                 return; 
             }
-            rtcPeers[data.userId].signal(data.signal)
+            rtcPeers.current[data.from].signal(data.signal)
         })
 
 
