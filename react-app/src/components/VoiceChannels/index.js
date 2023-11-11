@@ -23,15 +23,27 @@ export default function VoiceChannels() {
     const iceServers = useSelector((state) => state.voiceChannels.iceServers);
     const dispatch = useDispatch();
 
-    function newMemberAndOffer (data) {
+    async function newMemberAndOffer(data) {
         console.log(data)
         console.log(iceServers)
-        const pc = new Peer({initiator: true})
-        pc.on('signal', signal => {
-            socket.emit('signal', { 'to': data.userId, signal, 'from': currentUser.userId})
+        const video = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false
         })
+
+        const pc = new Peer({ initiator: true, stream: video })
+        pc.on('signal', signal => {
+            socket.emit('signal', { 'to': data.userId, signal, 'from': currentUser.userId })
+        })
+
         pc.on('connect', () => {
             console.log('connected!')
+            const videoWindow = document.getElementById('localVideo')
+            if('srcObject' in videoWindow) {
+                videoWindow.srcObject = video
+            } else {
+                videoWindow.src = window.URL.createObjectURL(video)
+            }
         })
 
         pc.on('data', data => {
@@ -42,20 +54,46 @@ export default function VoiceChannels() {
             console.log(error)
         })
 
-        rtcPeers.current[data.userId] = pc; 
-        console.log(rtcPeers); 
+        pc.on('stream', stream => {
+            const videoWindow = document.createElement('video'); 
+            videoWindow.setAttribute('playsinline', 'true') 
+            videoWindow.setAttribute('autoplay', 'true')
+            if('srcObject' in videoWindow) {
+                videoWindow.srcObject = stream
+            } else {
+                videoWindow.src = window.URL.createObjectURL(stream)
+            }
+            const videoBox = document.getElementById('video-box')
+            videoBox.appendChild(videoWindow);
+            videoWindow.play(); 
+        })
+
+        rtcPeers.current[data.userId] = pc;
+        console.log(rtcPeers);
     }
 
-    function newOffer (data) {
-        const pc = new Peer({initiator: false}); 
+    async function newOffer(data) {
+        const video = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false
+        })
+        const pc = new Peer({ initiator: false, stream: video });
         pc.signal(data.signal)
         console.log(data)
+
         pc.on('signal', (signal) => {
-            socket.emit('signal', {signal, 'to': data.from, 'from': currentUser.userId})
+            socket.emit('signal', { signal, 'to': data.from, 'from': currentUser.userId })
         })
+
         pc.on('connect', () => {
             console.log('connected!')
             pc.write('testtesttest')
+            const videoWindow = document.getElementById('localVideo')
+            if('srcObject' in videoWindow) {
+                videoWindow.srcObject = video
+            } else {
+                videoWindow.src = window.URL.createObjectURL(video)
+            }
         })
 
         pc.on('data', data => {
@@ -66,8 +104,22 @@ export default function VoiceChannels() {
             console.log(error)
         })
 
-        rtcPeers.current[data.from] = pc; 
-        console.log(rtcPeers.current); 
+        pc.on('stream', stream => {
+            const videoWindow = document.createElement('video'); 
+            videoWindow.setAttribute('playsinline', 'true') 
+            videoWindow.setAttribute('autoplay', 'true') 
+            if('srcObject' in videoWindow) {
+                videoWindow.srcObject = stream
+            } else {
+                videoWindow.src = window.URL.createObjectURL(stream)
+            }
+            const videoBox = document.getElementById('video-box')
+            videoBox.appendChild(videoWindow);
+            videoWindow.play(); 
+        })
+
+        rtcPeers.current[data.from] = pc;
+        console.log(rtcPeers.current);
     }
 
     useEffect(() => {
@@ -89,8 +141,8 @@ export default function VoiceChannels() {
         socket.on('signal', (data) => {
             console.log(rtcPeers.current[data.from], data)
             if (!rtcPeers.current[data.from]) {
-                newOffer(data); 
-                return; 
+                newOffer(data);
+                return;
             }
             rtcPeers.current[data.from].signal(data.signal)
         })
@@ -134,8 +186,8 @@ export default function VoiceChannels() {
         <div id="video-box" className="socket-container">
             <label>{"Username: " + currentUser.userId}</label>
             <label>{"Room Id: " + channelId}</label>
-            <video className="videoBox" autoPlay playsInline ref={localVideoRef} />
-            <video autoPlay playsInline ref={remoteVideoRef} />
+            <video id="localVideo" className="videoBox" autoPlay playsInline ref={localVideoRef} />
+            <video id="remoteVideo" autoPlay playsInline ref={remoteVideoRef} />
             <button onClick={clickEvent}>{videoToggle ? "Turn off Video" : "Start Video"}</button>
         </div>
     );
