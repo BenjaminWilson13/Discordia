@@ -6,6 +6,9 @@ import os
 from datetime import datetime
 from flask_login import current_user, login_required
 from flask_login import current_user, login_required
+from engineio.payload import Payload
+
+Payload.max_decode_packets = 1000
 
 
 
@@ -18,6 +21,13 @@ else:
 # create your socketIO instance
 socketio = SocketIO(cors_allowed_origin=origins)
 userList = {}
+
+
+@socketio.on('signal')
+def signal_exchange(message): 
+    print(message)
+    user = offererRoom = str(message['to']) + 'user'
+    emit('signal', message, to=user, skip_sid=request.sid)
 
 @socketio.on('iceCandidate')
 def ice_candidate(message): 
