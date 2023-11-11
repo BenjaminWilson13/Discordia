@@ -265,11 +265,13 @@ export default function VoiceChannels() {
 
 
     return (
-        <div id="video-box" className="socket-container">
+        <div className="voice-container">
             <label>{"Username: " + currentUser.userId}</label>
             <label>{"Room Id: " + channelId}</label>
-            <video id="localVideo" className="videoBox" autoPlay playsInline ref={localVideoRef} />
-            <video id="remoteVideo" autoPlay playsInline ref={remoteVideoRef} />
+            <div id="video-box">
+                <video id="localVideo" className="videoBox" autoPlay playsInline ref={localVideoRef} />
+                {/* <video id="remoteVideo" autoPlay playsInline ref={remoteVideoRef} /> */}
+            </div>
             <button onClick={clickEvent}>{videoToggle ? "Turn off Video" : "Start Video"}</button>
         </div>
     );
