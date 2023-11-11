@@ -9,6 +9,7 @@ import socketio from "socket.io-client";
 import { socket } from "../../socket";
 import "./VoiceChannels.css"
 import { getApiIceServers } from "../../store/voiceChannels";
+const Peer = require('simple-peer')
 
 
 
@@ -22,124 +23,68 @@ export default function VoiceChannels() {
     const iceServers = useSelector((state) => state.voiceChannels.iceServers);
     const dispatch = useDispatch();
 
+    function newMemberAndOffer (data) {
+        console.log(data)
 
+        const pc = new Peer({initiator: true})
+        pc.on('signal', signal => {
+            socket.emit('signal', { 'to': data.userId, signal, 'from': currentUser.userId})
+        })
+        pc.on('connect', () => {
+            console.log('connected!')
+        })
 
-
-    async function newMemberAndOffer(data1) {
-        let pc = new RTCPeerConnection({ iceServers })
-        pc.ontrack = event => {
-            console.log(event)
-            const videoBox = document.getElementById('video-box');
-            const video = document.createElement('video');
-            video.srcObject = event.streams[0];
-            videoBox.appendChild(video);
-        }
-        pc.onsignalingstatechange = async (event) => {
-            switch (pc.signalingState) {
-                case "stable": 
-                    const video = await navigator.mediaDevices.getUserMedia({
-                        audio: false,
-                        video: { width: 1920, height: 1080 }
-                    })
-                    for (const track of video.getTracks()) {
-                        console.log(track)  
-                        pc.addTrack(track, video)
-                    }
-                    break; 
-                    
-            }
-        }
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
-        rtcPeers.current[data1.userId] = { "offer": offer, 'offerPC': pc, "offerer": { "userId": currentUser.userId, channelId, serverId }, 'answerer': data1 }
-        
-        pc.onicecandidate = event => {
-            if (event.candidate !== null) {
-                socket.emit('iceCandidate', { 'candidate': event.candidate, 'to': currentUser.userId })
-            }
-        }
-        socket.emit("offer", { "offer": offer, "offerer": { "userId": currentUser.userId, channelId, serverId }, 'answerer': data1 })
+        pc.on('data', data => {
+            console.log(data)
+        })
+        rtcPeers.current[data.userId] = pc; 
+        console.log(rtcPeers); 
     }
 
-    // window.onbeforeunload = function (event) {
-    //     return socket.emit("userLeavingChannel", {
-    //         "userId": currentUser.userId,
-    //         'serverId': parseInt(serverId),
-    //         'channelId': parseInt(channelId)
-    //     })
-    // }
-    function iceCandidate(data) {
-        
-        if (currentUser.userId !== data.to) {
-            try {
-                rtcPeers.current[data.to].answerPC.addIceCandidate(new RTCIceCandidate(data.candidate))
-            } catch (e) {
-                console.error(e);
-                rtcPeers.current[data.to].offerPC.addIceCandidate(new RTCIceCandidate(data.candidate))
-            }
-        }
-    }
+    function newOffer (data) {
+        const pc = new Peer(); 
+        pc.signal(data.signal)
+        console.log(data)
+        pc.on('signal', (signal) => {
+            socket.emit('signal', {signal, 'to': data.from, 'from': currentUser.userId})
+        })
+        pc.on('connect', () => {
+            console.log('connected!')
+        })
 
+        pc.on('data', data => {
+            console.log(data)
+        })
+
+        rtcPeers.current[data.from] = pc; 
+        console.log(rtcPeers); 
+    }
 
     useEffect(() => {
-        socket.on('iceCandidate', (data) => {
-            
-            iceCandidate(data);
-        })
-        socket.on('answer', (data) => {
-            rtcPeers.current[data.answerer.userId].offerPC.setRemoteDescription(new RTCSessionDescription(data.answer))
-        })
+        if (!Object.keys(iceServers).length) {
+            dispatch(getApiIceServers());
+        }
 
         socket.on('newUserJoining', (data) => {
             if (data.error) return;
             newMemberAndOffer(data);
         })
 
-        socket.on('offer', async (data) => {
-            let pc = new RTCPeerConnection({ iceServers });
-            await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
-            pc.ontrack = event => {
-                console.log(event)
-                const videoBox = document.getElementById('video-box');
-                const video = document.createElement('video');
-                video.srcObject = event.streams[0];
-                videoBox.appendChild(video);
-            }
-            
-            pc.onsignalingstatechange = async (event) => {
-                switch (pc.signalingState) {
-                    case "stable": 
-                        const video = await navigator.mediaDevices.getUserMedia({
-                            audio: true,
-                            video: false
-                        })
-                        for (const track of video.getTracks()) {
-                            console.log(video, track)
-                            pc.addTrack(track, video)
-                        }
-                        break;  
-                }
-            }
-            const answer = await pc.createAnswer(data.answer);
-            await pc.setLocalDescription(answer)
-            rtcPeers.current[data.offerer.userId] = { ...data, answer, 'answerPC': pc }
-            pc.onicecandidate = event => {
-                if (event.candidate !== null) {
-                    socket.emit('iceCandidate', { 'candidate': event.candidate, 'to': currentUser.userId })
-                }
-            }
-            socket.emit("answer", { ...data, answer })
-        })
-
-        if (!Object.keys(iceServers).length) {
-            dispatch(getApiIceServers());
-        }
-
         socket.emit("userJoinedVoiceChannel", {
             "userId": currentUser.userId,
             'serverId': parseInt(serverId),
             'channelId': parseInt(channelId)
         })
+
+        socket.on('signal', (data) => {
+            console.log(data)
+            if (!rtcPeers[data.userId]) {
+                newOffer(data); 
+                return; 
+            }
+            rtcPeers[data.userId].signal(data.signal)
+        })
+
 
 
         return () => {
@@ -149,7 +94,13 @@ export default function VoiceChannels() {
                 'channelId': parseInt(channelId)
             })
         }
+
     }, [])
+
+
+
+
+
 
 
     function clickEvent(event) {
@@ -167,6 +118,7 @@ export default function VoiceChannels() {
             })
         }
     }
+
 
     return (
         <div id="video-box" className="socket-container">
