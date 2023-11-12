@@ -20,7 +20,6 @@ else:
 
 # create your socketIO instance
 socketio = SocketIO(cors_allowed_origin=origins)
-userList = {}
 
 
 @socketio.on('signal')
@@ -55,25 +54,17 @@ def offer(message):
 
 @socketio.on("userJoinedVoiceChannel")
 def newUser(message): 
-    userListString = 's{}c{}'.format(message['serverId'], message['channelId'])
     join_room(message['channelId'])
     join_room(str(current_user.id) + 'user')
-    if (userListString not in userList or userList[userListString] <= 0): 
-        userList[userListString] = 1
-        print ('returning', userList)
-        emit('newUserJoining', {'error': 'no users in channel'})
-        return
     print("Joining Channel", message)
     print(message['channelId'], str(current_user.id) + ' user')
-    emit("newUserJoining", message, skip_sid=request.sid, broadcast=True)
+    emit("newUserJoining", message, skip_sid=request.sid, to=message['channelId'])
 
 @socketio.on("userLeavingChannel")
 def leaveChannel(message): 
-    userListString = 's{}c{}'.format(message['serverId'], message['channelId'])
-    userList[userListString] -= 1
-
-    print("Leaving Channel", message, userList)
+    print("Leaving Channel", message)
     leave_room(message['channelId'])
+    emit('userLeavingChannel', message ,to=message['channelId'] )
 
 
 

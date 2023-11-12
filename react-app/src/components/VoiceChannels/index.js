@@ -22,6 +22,7 @@ export default function VoiceChannels() {
     const [videoToggle, setVideoToggle] = useState(false);
     const iceServers = useSelector((state) => state.voiceChannels.iceServers);
     const dispatch = useDispatch();
+    const [callStarted, setCallStarted] = useState(false)
 
     async function newMemberAndOffer(data) {
         const iceServers = [
@@ -93,10 +94,12 @@ export default function VoiceChannels() {
         pc.on('connect', () => {
             console.log('connected!', iceServers)
             const videoWindow = document.getElementById('localVideo')
+            videoWindow.hidden = false; 
+            setVideoToggle(true)
             if ('srcObject' in videoWindow) {
-                videoWindow.srcObject = video
+                localVideoRef.current.srcObject = video
             } else {
-                videoWindow.src = window.URL.createObjectURL(video)
+                localVideoRef.current.src = window.URL.createObjectURL(video)
             }
         })
 
@@ -112,6 +115,7 @@ export default function VoiceChannels() {
             const videoWindow = document.createElement('video');
             videoWindow.setAttribute('playsinline', 'true')
             videoWindow.setAttribute('autoplay', 'true')
+            videoWindow.setAttribute('id', `user${data.userId}VideoBox`)
             if ('srcObject' in videoWindow) {
                 videoWindow.srcObject = stream
             } else {
@@ -169,13 +173,15 @@ export default function VoiceChannels() {
 
         pc.on('connect', () => {
             console.log('connected!')
-            pc.write('testtesttest')
-            const videoWindow = document.getElementById('localVideo')
+            const videoWindow = document.getElementById('localVideo'); 
+            videoWindow.hidden = false; 
+            setVideoToggle(true)
             if ('srcObject' in videoWindow) {
-                videoWindow.srcObject = video
+                localVideoRef.current.srcObject = video
             } else {
-                videoWindow.src = window.URL.createObjectURL(video)
+                localVideoRef.current.src = window.URL.createObjectURL(video)
             }
+            setVideoToggle(true)
         })
 
         pc.on('data', data => {
@@ -188,8 +194,9 @@ export default function VoiceChannels() {
 
         pc.on('stream', stream => {
             const videoWindow = document.createElement('video');
-            videoWindow.setAttribute('playsinline', 'true')
-            videoWindow.setAttribute('autoplay', 'true')
+            videoWindow.setAttribute('playsinline', 'true'); 
+            videoWindow.setAttribute('autoplay', 'true'); 
+            videoWindow.setAttribute('id', `user${data.userId}VideoBox`); 
             if ('srcObject' in videoWindow) {
                 videoWindow.srcObject = stream
             } else {
@@ -205,20 +212,20 @@ export default function VoiceChannels() {
     }
 
     useEffect(() => {
+        if (callStarted) {
+            socket.on('newUserJoining', (data) => {
+                if (data.error) return;
+                newMemberAndOffer(data);
+            })
+        } else {
+            socket.off('newUserJoining')
+        }
+    }, [callStarted])
+
+    useEffect(() => {
         if (iceServers.length) {
             dispatch(getApiIceServers());
         }
-
-        socket.on('newUserJoining', (data) => {
-            if (data.error) return;
-            newMemberAndOffer(data);
-        })
-
-        socket.emit("userJoinedVoiceChannel", {
-            "userId": currentUser.userId,
-            'serverId': parseInt(serverId),
-            'channelId': parseInt(channelId)
-        })
 
         socket.on('signal', (data) => {
             console.log(rtcPeers.current[data.from], data)
@@ -229,7 +236,10 @@ export default function VoiceChannels() {
             rtcPeers.current[data.from].signal(data.signal)
         })
 
-
+        socket.on('userLeavingChannel', (data) => {
+            console.log(data); 
+            destoryPeer(data.userId)
+        })
 
         return () => {
             socket.emit("userLeavingChannel", {
@@ -241,38 +251,102 @@ export default function VoiceChannels() {
 
     }, [])
 
+    function destoryPeer(userId) {
+        rtcPeers.current[userId].destroy(); 
+        delete rtcPeers.current[userId]; 
+        const videoElement = document.getElementById(`user${userId}VideoBox`);
 
-
-
-
-
-
-    function clickEvent(event) {
-        event.preventDefault();
-        if (videoToggle === true) {
-            localVideoRef.current.srcObject = null;
-            setVideoToggle(false);
+        /* so this weirdErrorElement is because sometimes 'userundefinedVideoBox' comes up as a video 
+        element ID so this is to delete that. It'll probably cause a problem if a lot of people are joining
+        but I'm not sure. Will just have to see if/when we get a bunch of people to do a call*/
+        const weirdErrorElement = document.getElementById('userundefinedVideoBox')
+        if (videoElement) {
+            videoElement.parentNode.removeChild(videoElement); 
         } else {
-            navigator.mediaDevices.getUserMedia({
-                audio: true,
-                video: true
-            }).then((res) => {
-                localVideoRef.current.srcObject = res;
-                setVideoToggle(true);
-            })
+            weirdErrorElement.parentNode.removeChild(weirdErrorElement); 
+        }
+        if (Object.keys(rtcPeers.current).length < 1) {
+
         }
     }
 
+    function removeAllVideoElements() {
+        const videoElements = document.querySelectorAll('video'); 
+        console.log(videoElements)
+        for (let videoElement of videoElements) {
+            if (videoElement.id !== 'localVideo') videoElement.parentNode.removeChild(videoElement)
+        }
+    }
+
+    function closeAllPeerConns() {
+        for (let pc of Object.values(rtcPeers.current)) {
+            pc.destroy(); 
+            console.log(pc)
+        }
+        rtcPeers.current = {}; 
+    }
+
+    function startCall(event) {
+        event.preventDefault();
+        console.log('starting call!')
+        if (!callStarted) {
+            socket.emit("userJoinedVoiceChannel", {
+                "userId": currentUser.userId,
+                'serverId': parseInt(serverId),
+                'channelId': parseInt(channelId)
+            })
+            setCallStarted(!callStarted)
+        } else {
+            socket.emit("userLeavingChannel", {
+                "userId": currentUser.userId,
+                'serverId': parseInt(serverId),
+                'channelId': parseInt(channelId)
+            })
+            removeAllVideoElements(); 
+            setCallStarted(!callStarted);
+            releaseDevices(); 
+            if (videoToggle) hideVideo();  
+            closeAllPeerConns(); 
+        }
+    }
+
+    function releaseDevices() {
+        const tracks = localVideoRef.current.srcObject.getTracks(); 
+        tracks.forEach(track => track.stop());
+    }
+
+    function hideVideo(event) {
+        if (event) {
+            event.preventDefault();
+        }
+        if (videoToggle === true) {
+            document.getElementById('localVideo').hidden = true; 
+            setVideoToggle(false);
+        } else {
+            // navigator.mediaDevices.getUserMedia({
+            //     audio: true,
+            //     video: true
+            // }).then((res) => {
+            //     localVideoRef.current.srcObject = res;
+            //     setVideoToggle(true);
+            // })
+            document.getElementById('localVideo').hidden = false; 
+            setVideoToggle(true)
+        }
+    }
 
     return (
         <div className="voice-container">
+            {/* the username and room ID are temporary, just because there's problems with the voice channel seeding
+            and there's currently no way to add a voice channel to a server, they is what they is*/}
             <label>{"Username: " + currentUser.userId}</label>
             <label>{"Room Id: " + channelId}</label>
             <div id="video-box">
-                <video id="localVideo" className="videoBox" autoPlay playsInline ref={localVideoRef} />
+                <video id="localVideo" hidden={true} className="videoBox" autoPlay playsInline ref={localVideoRef} />
                 {/* <video id="remoteVideo" autoPlay playsInline ref={remoteVideoRef} /> */}
             </div>
-            <button onClick={clickEvent}>{videoToggle ? "Turn off Video" : "Start Video"}</button>
+            <button onClick={hideVideo} hidden={!callStarted}>{videoToggle ? "Hide My Video" : "Show My Video"}</button>
+            <button onClick={startCall}>{callStarted ? 'End Call' : 'Start Voice and Video'}</button>
         </div>
     );
 }
