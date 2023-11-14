@@ -227,8 +227,15 @@ export default function VoiceChannels() {
 
     function releaseDevices() {
         console.log(stopVideoRef.current, 'function')
-        const tracks = stopVideoRef.current.getTracks();
-        tracks.forEach(track => track.stop());
+        try {
+            const tracks = stopVideoRef.current.getTracks();
+            tracks.forEach(track => track.stop());
+        } catch (e) {}
+        try {
+            const tracks = localDisplayRef.current.getTracks(); 
+            tracks.forEach(track => track.stop());
+        } catch (e) {}
+
     }
 
     function hideVideoFunction(event) {
