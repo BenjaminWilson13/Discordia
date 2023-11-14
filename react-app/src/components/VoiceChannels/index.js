@@ -16,15 +16,18 @@ const Peer = require('simple-peer')
 export default function VoiceChannels() {
     const { serverId, channelId } = useParams();
     const localVideoRef = useRef({});
+    const localDisplayRef = useRef({});
     const rtcPeers = useRef({});
-    const stopVideoRef = useRef(null); 
+    const stopVideoRef = useRef(null);
     const currentUser = useSelector((state) => state.session.user);
     const [videoToggle, setVideoToggle] = useState(false);
-    const [callStarted, setCallStarted] = useState(false)
+    const [callStarted, setCallStarted] = useState(false);
+    const newStream = useRef(null);
+    const [sendScreen, setSendScreen] = useState(false)
 
     function createPeerConnection(initiator) {
         const pc = new Peer({
-            initiator, stream: localVideoRef.current.srcObject, config: {
+            initiator, stream: newStream.current, config: {
                 iceServers: [
                     {
                         urls: "stun:stun.relay.metered.ca:80",
@@ -76,33 +79,32 @@ export default function VoiceChannels() {
             console.log('peer conn closing', pc);
             try {
                 destoryPeer(pc.remotePeerId);
-            } catch(e) {
+            } catch (e) {
             }
         })
 
         pc.on('error', error => {
-            console.log(error)
+            console.error(error)
         })
 
-        pc.on('stream', stream => {
-            const videoWindow = document.createElement('video');
-            videoWindow.setAttribute('playsinline', 'true');
-            videoWindow.setAttribute('autoplay', 'true');
-            videoWindow.setAttribute('id', `user${pc.remotePeerId}VideoBox`);
-            if ('srcObject' in videoWindow) {
-                videoWindow.srcObject = stream
-            } else {
-                videoWindow.src = window.URL.createObjectURL(stream)
-            }
-            const videoBox = document.getElementById('video-box')
-            videoBox.appendChild(videoWindow);
+        pc.on('stream', streams => {
+            streams.getTracks().forEach(stream => {
+                console.log('new Stream!', stream)
+                const videoWindow = document.createElement('video');
+                videoWindow.setAttribute('playsinline', 'true');
+                videoWindow.setAttribute('autoplay', 'true');
+                videoWindow.setAttribute('class', `user${pc.remotePeerId}VideoBox`);
+                videoWindow.srcObject = new MediaStream([stream])
+                const videoBox = document.getElementById('video-box')
+                videoBox.appendChild(videoWindow);
+            })
         })
 
         rtcPeers.current[pc.remotePeerId] = pc;
         console.log(rtcPeers.current);
     }
 
-    
+
     useEffect(() => {
         if (callStarted) {
             socket.on('newUserJoining', (data) => {
@@ -114,7 +116,7 @@ export default function VoiceChannels() {
             socket.off('newUserJoining')
         }
     }, [callStarted])
-    
+
     useEffect(() => {
 
         socket.on('signal', (data) => {
@@ -126,11 +128,11 @@ export default function VoiceChannels() {
             }
             rtcPeers.current[data.from].signal(data.signal)
         })
-        
+
         socket.on('userLeavingChannel', (data) => {
             console.log(data);
         })
-        
+
         return () => {
             socket.emit("userLeavingChannel", {
                 "userId": currentUser.userId,
@@ -139,11 +141,10 @@ export default function VoiceChannels() {
             })
             socket.off('signal');
             socket.off('userLeavingChannel');
-            socket.off('newUserJoining'); 
+            socket.off('newUserJoining');
             console.log(stopVideoRef.current, 'cleanup', rtcPeers.current)
-            releaseDevices(); 
-            closeAllPeerConns(); 
-
+            releaseDevices();
+            closeAllPeerConns();
         }
     }, [])
 
@@ -151,8 +152,10 @@ export default function VoiceChannels() {
         console.log(rtcPeers, 'destroying')
         rtcPeers.current[userId].destroy();
         delete rtcPeers.current[userId];
-        const videoElement = document.getElementById(`user${userId}VideoBox`);
-        videoElement.parentNode.removeChild(videoElement);
+        const videoElements = document.querySelectorAll(`.user${userId}VideoBox`);
+        for (let videoElement of videoElements) {
+            videoElement.parentNode.removeChild(videoElement);
+        }
     }
 
     function closeAllPeerConns() {
@@ -181,18 +184,39 @@ export default function VoiceChannels() {
                     video: true,
                     audio: false
                 }).then((res) => {
-                    localVideoRef.current.srcObject = res; 
-                    stopVideoRef.current = res;  
+                    localVideoRef.current.srcObject = res;
+                    stopVideoRef.current = res;
                     console.log(localVideoRef.current.srcObject)
                     const videoWindow = document.getElementById('localVideo');
                     videoWindow.hidden = false;
-                    socket.emit("userJoinedVoiceChannel", {
-                        "userId": currentUser.userId,
-                        'serverId': parseInt(serverId),
-                        'channelId': parseInt(channelId)
-                    })
                     setVideoToggle(true);
                     setCallStarted(!callStarted);
+                    newStream.current = new MediaStream();
+                    stopVideoRef.current.getTracks().forEach(track => newStream.current.addTrack(track));
+
+                    if (sendScreen) {
+                        navigator.mediaDevices.getDisplayMedia({
+                            video: true,
+                            audio: false
+                        }).then((res) => {
+                            localDisplayRef.current = res;
+                            localDisplayRef.current.getTracks().forEach(track => newStream.current.addTrack(track))
+                            socket.emit("userJoinedVoiceChannel", {
+                                "userId": currentUser.userId,
+                                'serverId': parseInt(serverId),
+                                'channelId': parseInt(channelId)
+                            })
+                        }).catch((err) => {
+                            console.error(err);
+                            return null;
+                        })
+                    } else {
+                        socket.emit("userJoinedVoiceChannel", {
+                            "userId": currentUser.userId,
+                            'serverId': parseInt(serverId),
+                            'channelId': parseInt(channelId)
+                        })
+                    }
                 })
             } catch (e) {
                 console.log("Can't start a video call without a camera! Or there was a problem with your camera!")
@@ -231,6 +255,10 @@ export default function VoiceChannels() {
             </div>
             <button onClick={hideVideoFunction} hidden={!callStarted}>{videoToggle ? "Hide My Video" : "Show My Video"}</button>
             <button onClick={callButtonFunction}>{callStarted ? 'End Call' : 'Start Voice and Video'}</button>
+            <form>
+                <label>Send Screen?</label>
+                <input type="checkbox" value={sendScreen} onChange={() => setSendScreen(!sendScreen)} />
+            </form>
         </div>
     );
 }
