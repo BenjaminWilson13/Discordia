@@ -56,6 +56,7 @@ function App() {
               <ChannelList />
               <VoiceChannels />
               <ServerUserList />
+              {/*new component here*/}
               <LogoutNav />
             </ProtectedRoute>
             <ProtectedRoute exact path="/channels/:serverId/:channelId">

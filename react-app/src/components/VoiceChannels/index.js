@@ -11,23 +11,37 @@ import "./VoiceChannels.css"
 import { getApiIceServers } from "../../store/voiceChannels";
 const Peer = require('simple-peer')
 
+/* 
+    TODO: 
+        1. Add individual controls for starting webcam and sharing screen. Will have to figure out if I need to renogitate 
+        the peer connection to add them later.  - DONE!
+
+        2. Start webcam button should be down at the bottom next to start call. - DONE!
+        
+        3. Start screen share sould be down under the channel list, above the logout button in it's own box similar to how
+        discord currently functions. 
+
+*/
+
 
 
 export default function VoiceChannels() {
     const { serverId, channelId } = useParams();
-    const localVideoRef = useRef({});
-    const localDisplayRef = useRef({});
+    const localWebCamRef = useRef(null);
+    const localDisplayRef = useRef(null);
     const rtcPeers = useRef({});
     const stopVideoRef = useRef(null);
     const currentUser = useSelector((state) => state.session.user);
     const [videoToggle, setVideoToggle] = useState(false);
     const [callStarted, setCallStarted] = useState(false);
-    const newStream = useRef(null);
-    const [sendScreen, setSendScreen] = useState(false)
+    const localAudioRef = useRef(null);
+    const [sendScreen, setSendScreen] = useState(false);
+    const [sendWebcam, setSendWebcam] = useState(false);
 
     function createPeerConnection(initiator) {
+
         const pc = new Peer({
-            initiator, stream: newStream.current, config: {
+            initiator, stream: localAudioRef.current, config: {
                 iceServers: [
                     {
                         urls: "stun:stun.relay.metered.ca:80",
@@ -61,6 +75,7 @@ export default function VoiceChannels() {
     async function newOffer(data, pc) {
         console.log('newOffer', data)
         pc.remotePeerId = data.from;
+
         if (data.signal) pc.signal(data.signal)
 
         pc.on('signal', (signal) => {
@@ -68,7 +83,13 @@ export default function VoiceChannels() {
         })
 
         pc.on('connect', () => {
-            console.log('connected!')
+            console.log("connected!, if there's more streams to send, we'll send 'em now~!", sendWebcam, stopVideoRef.current)
+            if (stopVideoRef.current) {
+                pc.addStream(stopVideoRef.current)
+            }
+            if (localDisplayRef.current) {
+                pc.addStream(localDisplayRef.current)
+            }
         })
 
         pc.on('data', data => {
@@ -88,12 +109,28 @@ export default function VoiceChannels() {
         })
 
         pc.on('stream', streams => {
-            streams.getTracks().forEach(stream => {
-                console.log('new Stream!', stream)
-                const videoWindow = document.createElement('video');
+            const videoWindow = document.createElement('video');
+            streams.onremovetrack = () => {
+                console.log('trackRemoved!')
+                videoWindow.parentNode.removeChild(videoWindow)
+            }
+            streams.getAudioTracks().forEach(stream => {
+                console.log('new audio Stream!', stream)
                 videoWindow.setAttribute('playsinline', 'true');
                 videoWindow.setAttribute('autoplay', 'true');
                 videoWindow.setAttribute('class', `user${pc.remotePeerId}VideoBox`);
+                videoWindow.setAttribute('hidden', 'true');
+                videoWindow.setAttribute('type', 'audio');
+                videoWindow.srcObject = new MediaStream([stream])
+                const videoBox = document.getElementById('video-box')
+                videoBox.appendChild(videoWindow);
+            })
+            streams.getVideoTracks().forEach(stream => {
+                console.log('new video Stream!', stream.id)
+                videoWindow.setAttribute('playsinline', 'true');
+                videoWindow.setAttribute('autoplay', 'true');
+                videoWindow.setAttribute('class', `user${pc.remotePeerId}VideoBox`);
+                videoWindow.setAttribute('type', 'video');
                 videoWindow.srcObject = new MediaStream([stream])
                 const videoBox = document.getElementById('video-box')
                 videoBox.appendChild(videoWindow);
@@ -129,6 +166,8 @@ export default function VoiceChannels() {
             rtcPeers.current[data.from].signal(data.signal)
         })
 
+        callButtonFunction();
+
         socket.on('userLeavingChannel', (data) => {
             console.log(data);
         })
@@ -142,7 +181,6 @@ export default function VoiceChannels() {
             socket.off('signal');
             socket.off('userLeavingChannel');
             socket.off('newUserJoining');
-            console.log(stopVideoRef.current, 'cleanup', rtcPeers.current)
             releaseDevices();
             closeAllPeerConns();
         }
@@ -166,7 +204,7 @@ export default function VoiceChannels() {
     }
 
     function callButtonFunction(event) {
-        event.preventDefault();
+        if (event) event.preventDefault();
         console.log('starting call!')
         if (callStarted) {
             socket.emit("userLeavingChannel", {
@@ -178,45 +216,23 @@ export default function VoiceChannels() {
             releaseDevices();
             if (videoToggle) hideVideoFunction();
             closeAllPeerConns();
+            setSendWebcam(false);
+            setSendScreen(false);
         } else {
             try {
                 navigator.mediaDevices.getUserMedia({
-                    video: true,
-                    audio: false
+                    video: false,
+                    audio: true
                 }).then((res) => {
-                    localVideoRef.current.srcObject = res;
-                    stopVideoRef.current = res;
-                    console.log(localVideoRef.current.srcObject)
-                    const videoWindow = document.getElementById('localVideo');
-                    videoWindow.hidden = false;
-                    setVideoToggle(true);
+                    console.log(localWebCamRef.current.srcObject)
                     setCallStarted(!callStarted);
-                    newStream.current = new MediaStream();
-                    stopVideoRef.current.getTracks().forEach(track => newStream.current.addTrack(track));
+                    localAudioRef.current = res;
+                    socket.emit("userJoinedVoiceChannel", {
+                        "userId": currentUser.userId,
+                        'serverId': parseInt(serverId),
+                        'channelId': parseInt(channelId)
+                    })
 
-                    if (sendScreen) {
-                        navigator.mediaDevices.getDisplayMedia({
-                            video: true,
-                            audio: false
-                        }).then((res) => {
-                            localDisplayRef.current = res;
-                            localDisplayRef.current.getTracks().forEach(track => newStream.current.addTrack(track))
-                            socket.emit("userJoinedVoiceChannel", {
-                                "userId": currentUser.userId,
-                                'serverId': parseInt(serverId),
-                                'channelId': parseInt(channelId)
-                            })
-                        }).catch((err) => {
-                            console.error(err);
-                            return null;
-                        })
-                    } else {
-                        socket.emit("userJoinedVoiceChannel", {
-                            "userId": currentUser.userId,
-                            'serverId': parseInt(serverId),
-                            'channelId': parseInt(channelId)
-                        })
-                    }
                 })
             } catch (e) {
                 console.log("Can't start a video call without a camera! Or there was a problem with your camera!")
@@ -228,17 +244,19 @@ export default function VoiceChannels() {
     function releaseDevices() {
         console.log(stopVideoRef.current, 'function')
         try {
-            const tracks = stopVideoRef.current.getTracks();
-            tracks.forEach(track => track.stop());
-        } catch (e) {}
+            localAudioRef.current.getTracks().forEach((track) => track.stop());
+            stopVideoRef.current.getTracks().forEach((track) => { track.stop(); })
+            localDisplayRef.current.getTracks().forEach((track) => { track.stop(); })
+        } catch (e) { }
         try {
-            const tracks = localDisplayRef.current.getTracks(); 
+            const tracks = localDisplayRef.current.getTracks();
             tracks.forEach(track => track.stop());
-        } catch (e) {}
+        } catch (e) { }
 
     }
 
     function hideVideoFunction(event) {
+        console.log(document.getElementById('localVideo').hidden)
         if (event) {
             event.preventDefault();
         }
@@ -251,6 +269,68 @@ export default function VoiceChannels() {
         }
     }
 
+    function addWebcamToStream(event) {
+        event.preventDefault();
+        if (!sendWebcam) {
+            try {
+                navigator.mediaDevices.getUserMedia({
+                    video: true,
+                    audio: false
+                }).then((res) => {
+                    res.getTracks().forEach((track) => track.contentHint = 'webcam')
+                    res.contentHint = 'webcam'
+                    localWebCamRef.current.srcObject = res;
+                    stopVideoRef.current = res;
+                    const videoWindow = document.getElementById('localVideo');
+                    videoWindow.hidden = false;
+                    for (let peerConn of Object.values(rtcPeers.current)) {
+                        peerConn.addStream(res)
+                    }
+                    setVideoToggle(true);
+                    setSendWebcam(true);
+                })
+            } catch (e) {
+                console.log("Can't start a video call without a camera! Or there was a problem with your camera!")
+                console.error(e);
+            }
+        } else {
+            console.log(stopVideoRef.current.getTracks()[0])
+            for (let peerConn of Object.values(rtcPeers.current)) {
+                peerConn.removeStream(stopVideoRef.current)
+                peerConn.send(`user${currentUser.userId}webcam`)
+            }
+            stopVideoRef.current.getTracks().forEach((track) => { track.stop(); })
+            setSendWebcam(false);
+            hideVideoFunction();
+        }
+    }
+
+    function addScreenToStream(event) {
+        event.preventDefault();
+        if (!sendScreen) {
+            navigator.mediaDevices.getDisplayMedia({
+                video: true,
+                audio: false
+            }).then((res) => {
+                localDisplayRef.current = res;
+                for (let peerConn of Object.values(rtcPeers.current)) {
+                    peerConn.addStream(res)
+                }
+                setSendScreen(true);
+            }).catch((err) => {
+                console.error(err);
+                return null;
+            })
+        } else {
+            for (let peerConn of Object.values(rtcPeers.current)) {
+                peerConn.removeStream(localDisplayRef.current)
+                localDisplayRef.current.getTracks().forEach((track) => peerConn.send(track.id))
+            }
+            localDisplayRef.current.getTracks().forEach((track) => { track.stop(); })
+            setSendScreen(false)
+        }
+    }
+
     return (
         <div className="voice-container">
             {/* the username and room ID are temporary, just because there's problems with the voice channel seeding
@@ -258,14 +338,15 @@ export default function VoiceChannels() {
             <label>{"Username: " + currentUser.userId}</label>
             <label>{"Room Id: " + channelId}</label>
             <div id="video-box">
-                <video id="localVideo" hidden={true} className="videoBox" autoPlay playsInline ref={localVideoRef} />
+                <video id="localVideo" muted={true} hidden={true} className="videoBox" autoPlay playsInline ref={localWebCamRef} />
             </div>
-            <button onClick={hideVideoFunction} hidden={!callStarted}>{videoToggle ? "Hide My Video" : "Show My Video"}</button>
-            <button onClick={callButtonFunction}>{callStarted ? 'End Call' : 'Start Voice and Video'}</button>
-            <form>
-                <label>Send Screen?</label>
-                <input type="checkbox" value={sendScreen} onChange={() => setSendScreen(!sendScreen)} />
-            </form>
+            <button onClick={callButtonFunction}>{callStarted ? 'End Voice Chat' : 'Start Voice Chat'}</button>
+            <br />
+            <button hidden={!callStarted} onClick={addScreenToStream}>{sendScreen ? 'End Screen Share' : 'Start Screen Share'}</button>
+            <br />
+            <button hidden={!callStarted} onClick={addWebcamToStream}>{sendWebcam ? 'Stop Webcam' : 'Start Webcam'}</button>
+            <br />
+            <button hidden={!(callStarted && sendWebcam)} onClick={hideVideoFunction}>{videoToggle ? "Hide Self" : "Show Self"}</button>
         </div>
     );
 }
