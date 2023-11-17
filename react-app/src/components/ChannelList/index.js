@@ -7,7 +7,7 @@ import OpenModalButton from "../OpenModalButton";
 import EditChannelModal from "../EditChannelModal"
 import CreateChannelModal from "../CreateChannelModal";
 import TitleBar from "../TitleBar";
-import { getVoiceChannelsByServerId } from "../../store/voiceChannels";
+import { getVoiceChannelsByServerId, postNewVoiceChannelByServerId } from "../../store/voiceChannels";
 import { NavLink } from "react-router-dom/cjs/react-router-dom";
 
 export default function ChannelList() {
@@ -93,12 +93,20 @@ export default function ChannelList() {
             )
           })
         }
-        <div className="group-container">Voice Channels</div>
+        <div className="group-container" onMouseOver={(e) => {
+                  const button = document.getElementById(`new-channel-button-voice-channels`)
+                  button.className = "edit-channel-name-button"
+                }} onMouseLeave={(e) => {
+                  const button = document.getElementById(`new-channel-button-voice-channels`)
+                  button.className = "hidden"
+                }}>
+          Voice Channels
+          <OpenModalButton id={`new-channel-button-voice-channels`} buttonText={(<i className="fa-solid fa-plus add-channel"></i>)} className={"hidden"} modalComponent={<CreateChannelModal groupId={null} serverId={parseInt(serverId)} voiceChannel={true} defaultChannel={defaultChannel} />} /></div>
         {
           Object.values(voiceChannels).map((voiceChannel) => {
             const channelName = voiceChannel.name
             return (
-              <div key={voiceChannel} className="channel-container" onMouseOver={(e) => {
+              <div key={channelName} className="channel-container" onMouseOver={(e) => {
                 const button = document.getElementById(`channel-edit-${channelName}`)
                 button.className = "edit-channel-name-button"
               }} onMouseLeave={(e) => {
@@ -106,7 +114,7 @@ export default function ChannelList() {
                 button.className = "hidden"
               }} onClick={() => history.push(`/voiceChannel/${serverId}/${voiceChannel.id}`)}>
                 <span id="channel" style={voiceChannel.id == channelId && href.includes("voiceChannel") ? { color: "white", fontWeight: "bold" } : {}}><i className="fa-solid fa-hashtag"></i>{channelName}</span>
-                <OpenModalButton id={`channel-edit-${channelName}`} buttonText={(<i className="fa-solid fa-gear" style={{ backgroundColor: "var(--channel-hover)", fontSize: ".8rem" }}></i>)} className={"hidden"} modalComponent={<EditChannelModal channels={channels} channelName={channelName} groupNames={groupNames} groupIds={groupIds} defaultChannel={defaultChannel} />} />
+                <OpenModalButton id={`channel-edit-${channelName}`} buttonText={(<i className="fa-solid fa-gear" style={{ backgroundColor: "var(--channel-hover)", fontSize: ".8rem" }}></i>)} className={"hidden"} modalComponent={<EditChannelModal channels={channels} channelName={channelName} groupNames={groupNames} groupIds={groupIds} voiceChannel={true} defaultChannel={defaultChannel} />} />
               </div>
 
               // <NavLink to={`/voiceChannel/${serverId}/${voiceChannel.id}`}><div key={voiceChannel.id} className="channel-container"><i className="fa-solid fa-hashtag"></i>{voiceChannel.name}</div></ NavLink>

@@ -8,7 +8,7 @@ import { channelEdit, deleteChannel, serverDetailsGet } from "../../store/server
 
 
 export default function EditChannelModal(props) {
-    const { channels, channelName, groupNames, groupIds, defaultChannel } = props;
+    const { channels, channelName, groupNames, groupIds, defaultChannel, voiceChannel } = props;
     const dispatch = useDispatch();
     const [errors, setErrors] = useState([]);
     let channelInfo = {};
