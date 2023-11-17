@@ -14,12 +14,17 @@ voice_channel_routes = Blueprint("voiceChannels", __name__)
 @login_required
 def get_voice_channels_by_serverId(server_id): 
     server = Server.query.get(server_id)
+    
 
     return {voice_channel.id: voice_channel.to_dict() for voice_channel in server.voice_channels}
 
 @voice_channel_routes.route("/<int:server_id>", methods=['POST'])
 @login_required
 def create_voice_channel_by_server_id(server_id): 
+    server = Server.query.get(server_id).single_to_dict()
+    
+    if (current_user.id not in server['owner'] or current_user.id not in server['admin']): 
+        return {"error": "Only Admin and Owners can add voice channels"}, 400
     form = VoiceChannelForm()
     form['csrf_token'].data = request.cookies['csrf_token']
     form['server_id'].data = server_id
