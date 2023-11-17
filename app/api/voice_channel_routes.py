@@ -22,8 +22,9 @@ def get_voice_channels_by_serverId(server_id):
 @login_required
 def create_voice_channel_by_server_id(server_id): 
     server = Server.query.get(server_id).single_to_dict()
+    print(server['userRoles']['owner'], server['userRoles']['admins'], server['userRoles']['users'])
     
-    if (current_user.id not in server['owner'] or current_user.id not in server['admin']): 
+    if (current_user.id not in server['userRoles']['owner'] and current_user.id not in server['userRoles']['admins']): 
         return {"error": "Only Admin and Owners can add voice channels"}, 400
     form = VoiceChannelForm()
     form['csrf_token'].data = request.cookies['csrf_token']
