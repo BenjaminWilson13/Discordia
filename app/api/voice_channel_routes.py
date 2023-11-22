@@ -14,8 +14,6 @@ voice_channel_routes = Blueprint("voiceChannels", __name__)
 @login_required
 def get_voice_channels_by_serverId(server_id): 
     server = Server.query.get(server_id)
-    
-
     return {voice_channel.id: voice_channel.to_dict() for voice_channel in server.voice_channels}
 
 

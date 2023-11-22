@@ -30,6 +30,7 @@ const deleteVoiceChannel = (data) => ({
 export const getVoiceChannelsByServerId = (serverId) => async (dispatch) => {
     const res = await fetch(`/api/voiceChannels/${serverId}`); 
     const data = await res.json(); 
+    console.log(data, serverId)
     if (res.ok) {
         dispatch(getVoiceChannelsByServer(data))
         return null; 

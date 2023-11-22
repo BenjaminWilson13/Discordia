@@ -32,12 +32,12 @@ export default function ChannelList() {
   }, [dispatch, allServers, sessionUser.userId]);
 
   useEffect(() => {
+    dispatch(getVoiceChannelsByServerId(serverId));
     if (
       (Object.keys(allServers) && !serverDetails) ||
       !serverDetails[serverId]
     ) {
       dispatch(serverDetailsGet(serverId));
-      dispatch(getVoiceChannelsByServerId(serverId));
     }
   }, [dispatch, serverId, serverDetails, allServers]);
 
