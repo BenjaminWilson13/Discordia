@@ -312,7 +312,7 @@ export default function VoiceChannels({callStarted, setCallStarted, addScreenToS
         if (!sendScreen) {
             navigator.mediaDevices.getDisplayMedia({
                 video: true,
-                audio: false
+                audio: true
             }).then((res) => {
                 localDisplayRef.current = res;
                 for (let peerConn of Object.values(rtcPeers.current)) {

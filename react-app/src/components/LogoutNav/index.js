@@ -50,7 +50,6 @@ export default function LogoutNav({ callStarted, setCallStarted, addScreenToStre
                         <button className="nav-button" onClick={logout}>Log Out</button>
                     </div>
                 </div>
-
             </>
         )
     } catch (e) {
