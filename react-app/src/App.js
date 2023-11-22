@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Route, Switch, Redirect } from "react-router-dom";
 import { authenticate } from "./store/session";
@@ -19,9 +19,18 @@ import VoiceChannels from "./components/VoiceChannels";
 function App() {
   const dispatch = useDispatch();
   const [isLoaded, setIsLoaded] = useState(false);
+  const addScreenToStream = useRef({});
+  const callButtonFunction = useRef({});
+  const addWebcamToStream = useRef({});
+  const hideVideoFunction = useRef({});
+  const [videoToggle, setVideoToggle] = useState(false);
+  const [sendScreen, setSendScreen] = useState(false);
+  const [sendWebcam, setSendWebcam] = useState(false);
+
   useEffect(() => {
     dispatch(authenticate()).then(() => setIsLoaded(true));
   }, [dispatch]);
+  const [callStarted, setCallStarted] = useState(false)
 
   return (
     <>
@@ -48,16 +57,38 @@ function App() {
               <Navigation isLoaded={isLoaded} />
               <DirectMessages />
               <ConversationMessages />
-              <DeveloperList /> 
+              <DeveloperList />
               <LogoutNav />
             </ProtectedRoute>
             <ProtectedRoute exact path="/voiceChannel/:serverId/:channelId">
               <Navigation isLoaded={isLoaded} />
               <ChannelList />
-              <VoiceChannels />
+              <div>Sick lil box with controls</div>
+              <VoiceChannels callStarted={callStarted}
+                callButtonFunction={callButtonFunction}
+                setCallStarted={setCallStarted}
+                addScreenToStream={addScreenToStream}
+                addWebcamToStream={addWebcamToStream}
+                hideVideoFunction={hideVideoFunction}
+                sendScreen={sendScreen}
+                setSendScreen={setSendScreen}
+                sendWebcam={sendWebcam}
+                setSendWebcam={setSendWebcam}
+                videoToggle={videoToggle}
+                setVideoToggle={setVideoToggle} />
               <ServerUserList />
-              {/*new component here*/}
-              <LogoutNav />
+              <LogoutNav callStarted={callStarted}
+                callButtonFunction={callButtonFunction} 
+                setCallStarted={setCallStarted} 
+                addScreenToStream={addScreenToStream} 
+                addWebcamToStream={addWebcamToStream} 
+                hideVideoFunction={hideVideoFunction} 
+                sendScreen={sendScreen} 
+                setSendScreen={setSendScreen} 
+                sendWebcam={sendWebcam} 
+                setSendWebcam={setSendWebcam} 
+                videoToggle={videoToggle} 
+                setVideoToggle={setVideoToggle} />
             </ProtectedRoute>
             <ProtectedRoute exact path="/channels/:serverId/:channelId">
               <Navigation isLoaded={isLoaded} />

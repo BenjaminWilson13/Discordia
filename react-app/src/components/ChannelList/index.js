@@ -22,7 +22,7 @@ export default function ChannelList() {
   const [serverDetail, setServerDetail] = useState(null);
   const voiceChannels = useSelector((state) => state.voiceChannels.channels);
 
-  const href = window.location.href; 
+  const href = window.location.href;
 
 
   useEffect(() => {
@@ -95,18 +95,17 @@ export default function ChannelList() {
           })
         }
         <div className="group-container" onMouseOver={(e) => {
-                  const button = document.getElementById(`new-channel-button-voice-channels`)
-                  button.className = "edit-channel-name-button"
-                }} onMouseLeave={(e) => {
-                  const button = document.getElementById(`new-channel-button-voice-channels`)
-                  button.className = "hidden"
-                }}>
+          const button = document.getElementById(`new-channel-button-voice-channels`)
+          button.className = "edit-channel-name-button"
+        }} onMouseLeave={(e) => {
+          const button = document.getElementById(`new-channel-button-voice-channels`)
+          button.className = "hidden"
+        }}>
           Voice Channels
           <OpenModalButton id={`new-channel-button-voice-channels`} buttonText={(<i className="fa-solid fa-plus add-channel"></i>)} className={"hidden"} modalComponent={<CreateChannelModal groupId={null} serverId={parseInt(serverId)} voiceChannel={true} defaultChannel={defaultChannel} />} /></div>
         {
           Object.values(voiceChannels).map((voiceChannel) => {
             const channelName = voiceChannel.name
-            console.log(voiceChannel)
             return (
               <div key={channelName} className="channel-container" onMouseOver={(e) => {
                 const button = document.getElementById(`channel-edit-${channelName}`)

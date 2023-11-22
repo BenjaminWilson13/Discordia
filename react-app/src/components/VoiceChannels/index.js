@@ -25,19 +25,17 @@ const Peer = require('simple-peer')
 
 
 
-export default function VoiceChannels() {
+export default function VoiceChannels({callStarted, setCallStarted, addScreenToStream, callButtonFunction, addWebcamToStream, hideVideoFunction, sendScreen, setSendScreen, sendWebcam, setSendWebcam, videoToggle, setVideoToggle}) {
+
     const { serverId, channelId } = useParams();
     const localWebCamRef = useRef(null);
     const localDisplayRef = useRef(null);
     const rtcPeers = useRef({});
     const stopVideoRef = useRef(null);
     const currentUser = useSelector((state) => state.session.user);
-    const [videoToggle, setVideoToggle] = useState(false);
-    const [callStarted, setCallStarted] = useState(false);
+    
     const localAudioRef = useRef(null);
-    const [sendScreen, setSendScreen] = useState(false);
-    const [sendWebcam, setSendWebcam] = useState(false);
-
+    
     function createPeerConnection(initiator) {
 
         const pc = new Peer({
@@ -166,7 +164,7 @@ export default function VoiceChannels() {
             rtcPeers.current[data.from].signal(data.signal)
         })
 
-        callButtonFunction();
+        callButtonFunction.current();
 
         socket.on('userLeavingChannel', (data) => {
             console.log(data);
@@ -183,6 +181,10 @@ export default function VoiceChannels() {
             socket.off('newUserJoining');
             releaseDevices();
             closeAllPeerConns();
+            setCallStarted(false); 
+            setVideoToggle(false); 
+            setSendScreen(false); 
+            setSendWebcam(false); 
         }
     }, [])
 
@@ -203,7 +205,7 @@ export default function VoiceChannels() {
         }
     }
 
-    function callButtonFunction(event) {
+    callButtonFunction.current = (event) => {
         if (event) event.preventDefault();
         console.log('starting call!')
         if (callStarted) {
@@ -255,7 +257,7 @@ export default function VoiceChannels() {
 
     }
 
-    function hideVideoFunction(event) {
+    hideVideoFunction.current = (event) => {
         console.log(document.getElementById('localVideo').hidden)
         if (event) {
             event.preventDefault();
@@ -269,7 +271,7 @@ export default function VoiceChannels() {
         }
     }
 
-    function addWebcamToStream(event) {
+    addWebcamToStream.current = (event) => {
         event.preventDefault();
         if (!sendWebcam) {
             try {
@@ -305,7 +307,7 @@ export default function VoiceChannels() {
         }
     }
 
-    function addScreenToStream(event) {
+    addScreenToStream.current = (event) => {
         event.preventDefault();
         if (!sendScreen) {
             navigator.mediaDevices.getDisplayMedia({
@@ -340,13 +342,13 @@ export default function VoiceChannels() {
             <div id="video-box">
                 <video id="localVideo" muted={true} hidden={true} className="videoBox" autoPlay playsInline ref={localWebCamRef} />
             </div>
-            <button onClick={callButtonFunction}>{callStarted ? 'End Voice Chat' : 'Start Voice Chat'}</button>
+            {/* <button onClick={callButtonFunction.current}>{callStarted ? 'End Voice Chat' : 'Start Voice Chat'}</button>
             <br />
             <button hidden={!callStarted} onClick={addScreenToStream}>{sendScreen ? 'End Screen Share' : 'Start Screen Share'}</button>
             <br />
             <button hidden={!callStarted} onClick={addWebcamToStream}>{sendWebcam ? 'Stop Webcam' : 'Start Webcam'}</button>
             <br />
-            <button hidden={!(callStarted && sendWebcam)} onClick={hideVideoFunction}>{videoToggle ? "Hide Self" : "Show Self"}</button>
+            <button hidden={!(callStarted && sendWebcam)} onClick={hideVideoFunction}>{videoToggle ? "Hide Self" : "Show Self"}</button> */}
         </div>
     );
 }
