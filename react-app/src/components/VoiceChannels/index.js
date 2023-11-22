@@ -112,7 +112,7 @@ export default function VoiceChannels({callStarted, setCallStarted, addScreenToS
                 console.log('trackRemoved!')
                 videoWindow.parentNode.removeChild(videoWindow)
             }
-            streams.getAudioTracks().forEach(stream => {
+            streams.getTracks().forEach(stream => {
                 console.log('new audio Stream!', stream)
                 videoWindow.setAttribute('playsinline', 'true');
                 videoWindow.setAttribute('autoplay', 'true');
@@ -123,16 +123,16 @@ export default function VoiceChannels({callStarted, setCallStarted, addScreenToS
                 const videoBox = document.getElementById('video-box')
                 videoBox.appendChild(videoWindow);
             })
-            streams.getVideoTracks().forEach(stream => {
-                console.log('new video Stream!', stream.id)
-                videoWindow.setAttribute('playsinline', 'true');
-                videoWindow.setAttribute('autoplay', 'true');
-                videoWindow.setAttribute('class', `user${pc.remotePeerId}VideoBox`);
-                videoWindow.setAttribute('type', 'video');
-                videoWindow.srcObject = new MediaStream([stream])
-                const videoBox = document.getElementById('video-box')
-                videoBox.appendChild(videoWindow);
-            })
+            // streams.getVideoTracks().forEach(stream => {
+            //     console.log('new video Stream!', stream.id)
+            //     videoWindow.setAttribute('playsinline', 'true');
+            //     videoWindow.setAttribute('autoplay', 'true');
+            //     videoWindow.setAttribute('class', `user${pc.remotePeerId}VideoBox`);
+            //     videoWindow.setAttribute('type', 'video');
+            //     videoWindow.srcObject = new MediaStream([stream])
+            //     const videoBox = document.getElementById('video-box')
+            //     videoBox.appendChild(videoWindow);
+            // })
         })
 
         rtcPeers.current[pc.remotePeerId] = pc;
