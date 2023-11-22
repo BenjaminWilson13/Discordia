@@ -6,6 +6,7 @@ import { userServersGet, serverDetailsGet } from "../../store/servers";
 import OpenModalButton from "../OpenModalButton";
 import EditChannelModal from "../EditChannelModal"
 import CreateChannelModal from "../CreateChannelModal";
+import EditVoiceChannelModal from "../EditVoiceChannelModal";
 import TitleBar from "../TitleBar";
 import { getVoiceChannelsByServerId, postNewVoiceChannelByServerId } from "../../store/voiceChannels";
 import { NavLink } from "react-router-dom/cjs/react-router-dom";
@@ -114,7 +115,7 @@ export default function ChannelList() {
                 button.className = "hidden"
               }} onClick={() => history.push(`/voiceChannel/${serverId}/${voiceChannel.id}`)}>
                 <span id="channel" style={voiceChannel.id == channelId && href.includes("voiceChannel") ? { color: "white", fontWeight: "bold" } : {}}><i className="fa-solid fa-hashtag"></i>{channelName}</span>
-                <OpenModalButton id={`channel-edit-${channelName}`} buttonText={(<i className="fa-solid fa-gear" style={{ backgroundColor: "var(--channel-hover)", fontSize: ".8rem" }}></i>)} className={"hidden"} modalComponent={<EditChannelModal channels={channels} channelName={channelName} groupNames={groupNames} groupIds={groupIds} voiceChannel={true} defaultChannel={defaultChannel} />} />
+                <OpenModalButton id={`channel-edit-${channelName}`} buttonText={(<i className="fa-solid fa-gear" style={{ backgroundColor: "var(--channel-hover)", fontSize: ".8rem" }}></i>)} className={"hidden"} modalComponent={<EditVoiceChannelModal voiceChannel={voiceChannel} defaultChannel={defaultChannel} />} />
               </div>
 
               // <NavLink to={`/voiceChannel/${serverId}/${voiceChannel.id}`}><div key={voiceChannel.id} className="channel-container"><i className="fa-solid fa-hashtag"></i>{voiceChannel.name}</div></ NavLink>
