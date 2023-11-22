@@ -106,6 +106,7 @@ export default function ChannelList() {
         {
           Object.values(voiceChannels).map((voiceChannel) => {
             const channelName = voiceChannel.name
+            console.log(voiceChannel)
             return (
               <div key={channelName} className="channel-container" onMouseOver={(e) => {
                 const button = document.getElementById(`channel-edit-${channelName}`)

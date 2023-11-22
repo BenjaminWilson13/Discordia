@@ -25,8 +25,7 @@ class Server(db.Model):
         "imageUrl": self.imageUrl,
         "owner_id": self.owner_id,
         "default_channel_id": self.default_channel_id,
-        "userCount": len(self.serverUsers),
-        "voiceChannels": self.voice_channels
+        "userCount": len(self.serverUsers)
         }
 
     def single_to_dict(self):
