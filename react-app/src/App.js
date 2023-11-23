@@ -63,7 +63,6 @@ function App() {
             <ProtectedRoute exact path="/voiceChannel/:serverId/:channelId">
               <Navigation isLoaded={isLoaded} />
               <ChannelList />
-              <div>Sick lil box with controls</div>
               <VoiceChannels callStarted={callStarted}
                 callButtonFunction={callButtonFunction}
                 setCallStarted={setCallStarted}
