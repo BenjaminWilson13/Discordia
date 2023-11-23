@@ -4,9 +4,10 @@ import { useModal } from "../../context/Modal";
 import { useHistory } from "react-router-dom";
 import "./CreateChannelModal.css";
 import { serverDetailsGet, createChannel } from "../../store/servers";
+import { postNewVoiceChannelByServerId } from "../../store/voiceChannels";
 
 export default function CreateChannelModal(props) {
-    const { groupId, serverId } = props
+    const { groupId, serverId, voiceChannel } = props
     const [errors, setErrors] = useState([]);
     const [name, setName] = useState("");
     const history = useHistory();
@@ -22,17 +23,27 @@ export default function CreateChannelModal(props) {
             name,
             isPrivate: false
         }
-        const data = await dispatch(createChannel(body));
+        if (!voiceChannel) {
+            const data = await dispatch(createChannel(body));
 
-        if (typeof data.name !== "string") {
-            setErrors(data)
+            if (typeof data.name !== "string") {
+                setErrors(data)
+            } else {
+                dispatch(serverDetailsGet(serverId));
+                closeModal();
+                history.push(`/channels/${serverId}/${data.id}`)
+            }
         } else {
-            dispatch(serverDetailsGet(serverId));
-            closeModal();
-            history.push(`/channels/${serverId}/${data.id}`)
+            const data = await dispatch(postNewVoiceChannelByServerId(body.serverId, body.name)); 
+            if (typeof Object.values(data)[0].name !== 'string') {
+                setErrors(data); 
+            } else {
+                dispatch(serverDetailsGet(serverId));
+                closeModal(); 
+                history.push(`/voiceChannel/${serverId}/${Object.keys(data)[0]}`)
+            }
         }
     }
-
 
     return (
         <>

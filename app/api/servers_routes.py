@@ -68,7 +68,8 @@ def get_all_servers():
 @server_routes.route('/<int:server_id>')
 @login_required
 def get_specific_server_slice(server_id):
-    return {server_id: Server.query.get(server_id).single_to_dict()}
+    server = Server.query.get(server_id).single_to_dict()
+    return {server_id: server}
 
 
 @server_routes.route('/users')

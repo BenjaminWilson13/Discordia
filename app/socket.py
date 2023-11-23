@@ -6,6 +6,9 @@ import os
 from datetime import datetime
 from flask_login import current_user, login_required
 from flask_login import current_user, login_required
+from engineio.payload import Payload
+
+Payload.max_decode_packets = 1000
 
 
 
@@ -17,78 +20,32 @@ else:
 
 # create your socketIO instance
 socketio = SocketIO(cors_allowed_origin=origins)
-userList = {}
 
-@socketio.on('answer')
-def answer(message): 
-    offererRoom = str(message['offerer']['userId']) + 'user'
-    print(message, 'answer', offererRoom)
-    emit('answer', message, to=offererRoom)
 
-@socketio.on("offer")
-def offer(message): 
-    '''
-        {'offer': {OFFEROBJECTHOLYCRAPIT'SHUGE}, 
-        'offerer': {'userId': 1, 'channelId': '4', 'serverId': '4'}, 
-        'answerer': {'userId': 1, 'serverId': 4, 'channelId': 4}}
-    '''
-    
-    answererRoom = str(message['answerer']['userId']) + 'user'
-    print(message, 'offer', 'answererRoom')
-
-    emit("offer", message, to=answererRoom)
+@socketio.on('signal')
+def signal_exchange(message): 
+    print(message, 'signal')
+    user = str(message['to']) + 'user'
+    emit('signal', message, to=user, skip_sid=request.sid)
 
 @socketio.on("userJoinedVoiceChannel")
 def newUser(message): 
-    userListString = 's{}c{}'.format(message['serverId'], message['channelId'])
     join_room(message['channelId'])
     join_room(str(current_user.id) + 'user')
-    if (userListString not in userList or userList[userListString] <= 0): 
-        userList[userListString] = 1
-        print ('returning', userList)
-        emit('newUserJoining', {'error': 'no users in channel'})
-        return
     print("Joining Channel", message)
     print(message['channelId'], str(current_user.id) + ' user')
-    emit("newUserJoining", message, skip_sid=request.sid, broadcast=True)
+    emit("newUserJoining", {'from': current_user.id}, skip_sid=request.sid, to=message['channelId'])
 
 @socketio.on("userLeavingChannel")
 def leaveChannel(message): 
-    userListString = 's{}c{}'.format(message['serverId'], message['channelId'])
-    userList[userListString] -= 1
-
-    print("Leaving Channel", message, userList)
+    print("Leaving Channel", message)
     leave_room(message['channelId'])
-
-
-
-
-
-
-@socketio.on('join')
-def join(message):
-    username = message['username']
-    room = message['room']
-    join_room(room)
-    print('RoomEvent: {} has joined the room {}\n'.format(username, room))
-    emit('ready', {username: username}, to=room, skip_sid=request.sid)
-
-@socketio.on('data')
-def transfer_data(message):
-    username = message['username']
-    room = message['room']
-    data = message['data']
-    print('DataEvent: {} has sent the data:\n {}\n'.format(username, data))
-    emit('data', data, to=room, skip_sid=request.sid)  
-
-
+    leave_room(str(current_user.id) + 'user')
+    emit('userLeavingChannel', message ,to=message['channelId'] )
+    
 @socketio.on_error_default
 def default_error_handler(e):
     print("Error: {}".format(e))
-
-
-
-
 
 @socketio.event
 def connect(): 

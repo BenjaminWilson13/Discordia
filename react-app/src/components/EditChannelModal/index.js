@@ -8,7 +8,7 @@ import { channelEdit, deleteChannel, serverDetailsGet } from "../../store/server
 
 
 export default function EditChannelModal(props) {
-    const { channels, channelName, groupNames, groupIds, defaultChannel } = props;
+    const { channels, channelName, groupNames, groupIds, defaultChannel, voiceChannel } = props;
     const dispatch = useDispatch();
     const [errors, setErrors] = useState([]);
     let channelInfo = {};
@@ -59,6 +59,13 @@ export default function EditChannelModal(props) {
         }
     }
 
+    const handleEnter = (e) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            handleSubmit(e);
+        }
+    }
+
 
     return (
         <>
@@ -72,7 +79,7 @@ export default function EditChannelModal(props) {
                     </ul>
                     <label className="create-server-label">
                         Channel Name
-                        <input type="text" className="input-area" maxLength="25" minLength="5" value={name} onChange={(e) => setName(e.target.value)} required />
+                        <input type="text" className="input-area" maxLength="25" minLength="5" onKeyPress={handleEnter} value={name} onChange={(e) => setName(e.target.value)} required />
                     </label>
                     <label className="create-server-label">
                         Channel group
