@@ -129,6 +129,7 @@ export default function VoiceChannels({callStarted, setCallStarted, addScreenToS
                     videoWindow.setAttribute('autoplay', 'true');
                     videoWindow.setAttribute('class', `user${pc.remotePeerId}VideoBox`);
                     videoWindow.setAttribute('type', 'video');
+                    videoWindow.setAttribute('controls', 'true')
                     videoWindow.srcObject = streams
                     const videoBox = document.getElementById('video-box')
                     videoBox.appendChild(videoWindow);

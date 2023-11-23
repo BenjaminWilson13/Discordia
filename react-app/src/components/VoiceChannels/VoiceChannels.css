@@ -1,6 +1,8 @@
 video {
-    height: 25%;
-    width: 25%;
+    height: auto;
+    width: auto;
+    max-height: 25%;
+    max-width: 25%;
     flex-basis: auto;
     border: blue 3px solid;
 }
