@@ -9,6 +9,7 @@ import socketio from "socket.io-client";
 import { socket } from "../../socket";
 import "./VoiceChannels.css"
 import { getApiIceServers } from "../../store/voiceChannels";
+import { setMediaBitrate } from "./setMediaBitrate";
 const Peer = require('simple-peer')
 
 /* 
@@ -25,7 +26,7 @@ const Peer = require('simple-peer')
 
 
 
-export default function VoiceChannels({callStarted, setCallStarted, addScreenToStream, callButtonFunction, addWebcamToStream, hideVideoFunction, sendScreen, setSendScreen, sendWebcam, setSendWebcam, videoToggle, setVideoToggle}) {
+export default function VoiceChannels({ callStarted, setCallStarted, addScreenToStream, callButtonFunction, addWebcamToStream, hideVideoFunction, sendScreen, setSendScreen, sendWebcam, setSendWebcam, videoToggle, setVideoToggle }) {
 
     const { serverId, channelId } = useParams();
     const localWebCamRef = useRef(null);
@@ -33,9 +34,8 @@ export default function VoiceChannels({callStarted, setCallStarted, addScreenToS
     const rtcPeers = useRef({});
     const stopVideoRef = useRef(null);
     const currentUser = useSelector((state) => state.session.user);
-    
     const localAudioRef = useRef(null);
-    
+
     function createPeerConnection(initiator) {
 
         const pc = new Peer({
@@ -65,8 +65,15 @@ export default function VoiceChannels({callStarted, setCallStarted, addScreenToS
                         credential: "4IBYYZ5g8t+M2bkP",
                     },
                 ]
-            }
-        })
+            },
+            sdpTransform: (sdp) => {
+                const sdp2 = setMediaBitrate(setMediaBitrate(sdp, 'video', 6000000), 'audio', 160000);
+                console.log(sdp2);
+                return sdp2;
+            },
+            reconnectTimer: 5000
+
+        }); 
         return pc;
     }
 
@@ -113,26 +120,26 @@ export default function VoiceChannels({callStarted, setCallStarted, addScreenToS
                 videoWindow.parentNode.removeChild(videoWindow)
             }
             if (streams.getVideoTracks().length === 0) {
-                    console.log('new audio Stream!')
-                    videoWindow.setAttribute('playsinline', 'true');
-                    videoWindow.setAttribute('autoplay', 'true');
-                    videoWindow.setAttribute('class', `user${pc.remotePeerId}VideoBox`);
-                    videoWindow.setAttribute('hidden', 'true');
-                    videoWindow.setAttribute('type', 'audio');
-                    videoWindow.srcObject = streams
-                    const videoBox = document.getElementById('video-box')
-                    videoBox.appendChild(videoWindow);
-                
+                console.log('new audio Stream!')
+                videoWindow.setAttribute('playsinline', 'true');
+                videoWindow.setAttribute('autoplay', 'true');
+                videoWindow.setAttribute('class', `user${pc.remotePeerId}VideoBox`);
+                videoWindow.setAttribute('hidden', 'true');
+                videoWindow.setAttribute('type', 'audio');
+                videoWindow.srcObject = streams
+                const videoBox = document.getElementById('video-box')
+                videoBox.appendChild(videoWindow);
+
             } else {
-                    console.log('new video Stream!')
-                    videoWindow.setAttribute('playsinline', 'true');
-                    videoWindow.setAttribute('autoplay', 'true');
-                    videoWindow.setAttribute('class', `user${pc.remotePeerId}VideoBox`);
-                    videoWindow.setAttribute('type', 'video');
-                    videoWindow.setAttribute('controls', 'true')
-                    videoWindow.srcObject = streams
-                    const videoBox = document.getElementById('video-box')
-                    videoBox.appendChild(videoWindow);
+                console.log('new video Stream!')
+                videoWindow.setAttribute('playsinline', 'true');
+                videoWindow.setAttribute('autoplay', 'true');
+                videoWindow.setAttribute('class', `user${pc.remotePeerId}VideoBox`);
+                videoWindow.setAttribute('type', 'video');
+                videoWindow.setAttribute('controls', 'true')
+                videoWindow.srcObject = streams
+                const videoBox = document.getElementById('video-box')
+                videoBox.appendChild(videoWindow);
             }
         })
 
@@ -182,10 +189,10 @@ export default function VoiceChannels({callStarted, setCallStarted, addScreenToS
             socket.off('newUserJoining');
             releaseDevices();
             closeAllPeerConns();
-            setCallStarted(false); 
-            setVideoToggle(false); 
-            setSendScreen(false); 
-            setSendWebcam(false); 
+            setCallStarted(false);
+            setVideoToggle(false);
+            setSendScreen(false);
+            setSendWebcam(false);
         }
     }, [])
 
