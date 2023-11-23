@@ -1,18 +1,15 @@
 video {
-    height: fit-content;
-    width: auto;
-    max-width: 48%;
-    border-radius: 10%;
+    height: 25%;
+    width: 25%;
     flex-basis: auto;
     border: blue 3px solid;
-
 }
 
 
 #video-box {
     background-color: black;
     width: 100%;
-    height: 90%;
+    height: 100%;
     border: red 3px solid;
     display: flex;
     flex-wrap: wrap;

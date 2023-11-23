@@ -112,27 +112,27 @@ export default function VoiceChannels({callStarted, setCallStarted, addScreenToS
                 console.log('trackRemoved!')
                 videoWindow.parentNode.removeChild(videoWindow)
             }
-            streams.getAudioTracks().forEach(stream => {
-                console.log('new audio Stream!', stream)
-                videoWindow.setAttribute('playsinline', 'true');
-                videoWindow.setAttribute('autoplay', 'true');
-                videoWindow.setAttribute('class', `user${pc.remotePeerId}VideoBox`);
-                videoWindow.setAttribute('hidden', 'true');
-                videoWindow.setAttribute('type', 'audio');
-                videoWindow.srcObject = new MediaStream([stream])
-                const videoBox = document.getElementById('video-box')
-                videoBox.appendChild(videoWindow);
-            })
-            streams.getVideoTracks().forEach(stream => {
-                console.log('new video Stream!', stream.id)
-                videoWindow.setAttribute('playsinline', 'true');
-                videoWindow.setAttribute('autoplay', 'true');
-                videoWindow.setAttribute('class', `user${pc.remotePeerId}VideoBox`);
-                videoWindow.setAttribute('type', 'video');
-                videoWindow.srcObject = new MediaStream([stream])
-                const videoBox = document.getElementById('video-box')
-                videoBox.appendChild(videoWindow);
-            })
+            if (streams.getVideoTracks().length === 0) {
+                    console.log('new audio Stream!')
+                    videoWindow.setAttribute('playsinline', 'true');
+                    videoWindow.setAttribute('autoplay', 'true');
+                    videoWindow.setAttribute('class', `user${pc.remotePeerId}VideoBox`);
+                    videoWindow.setAttribute('hidden', 'true');
+                    videoWindow.setAttribute('type', 'audio');
+                    videoWindow.srcObject = streams
+                    const videoBox = document.getElementById('video-box')
+                    videoBox.appendChild(videoWindow);
+                
+            } else {
+                    console.log('new video Stream!')
+                    videoWindow.setAttribute('playsinline', 'true');
+                    videoWindow.setAttribute('autoplay', 'true');
+                    videoWindow.setAttribute('class', `user${pc.remotePeerId}VideoBox`);
+                    videoWindow.setAttribute('type', 'video');
+                    videoWindow.srcObject = streams
+                    const videoBox = document.getElementById('video-box')
+                    videoBox.appendChild(videoWindow);
+            }
         })
 
         rtcPeers.current[pc.remotePeerId] = pc;
@@ -277,7 +277,7 @@ export default function VoiceChannels({callStarted, setCallStarted, addScreenToS
             try {
                 navigator.mediaDevices.getUserMedia({
                     video: true,
-                    audio: true
+                    audio: false
                 }).then((res) => {
                     res.getTracks().forEach((track) => track.contentHint = 'webcam')
                     res.contentHint = 'webcam'
@@ -312,7 +312,7 @@ export default function VoiceChannels({callStarted, setCallStarted, addScreenToS
         if (!sendScreen) {
             navigator.mediaDevices.getDisplayMedia({
                 video: true,
-                audio: false
+                audio: true
             }).then((res) => {
                 localDisplayRef.current = res;
                 for (let peerConn of Object.values(rtcPeers.current)) {
