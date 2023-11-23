@@ -73,7 +73,7 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
             },
             reconnectTimer: 5000
 
-        }); 
+        });
         return pc;
     }
 
@@ -319,8 +319,13 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
         event.preventDefault();
         if (!sendScreen) {
             navigator.mediaDevices.getDisplayMedia({
-                video: true,
-                audio: true
+                video: {
+                    width: { ideal: 1920, max: 3840 },
+                    height: { ideal: 1080, max: 2160 },
+                    frameRate: { ideal: 60 },
+                    sampleRate: 10000000
+                },
+                audio: { sampleRate: 160000 }
             }).then((res) => {
                 localDisplayRef.current = res;
                 for (let peerConn of Object.values(rtcPeers.current)) {
