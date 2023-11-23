@@ -1,9 +1,9 @@
 export const setMediaBitrate = (sdp, mediaType, bitrate) => {
     const sdpLines = sdp.split('\n');
     let mediaLineIndex = -1;
-    const mediaLine = 'm=${mediaType}';
+    const mediaLine = `m=${mediaType}`;
     let bitrateLineIndex = -1;
-    const bitrateLine = 'b=AS:${bitrate}';
+    const bitrateLine = `b=AS:${bitrate}`;
     mediaLineIndex = sdpLines.findIndex(line => line.startsWith(mediaLine));
   
     // If we find a line matching “m={mediaType}”
