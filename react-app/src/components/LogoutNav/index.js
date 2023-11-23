@@ -36,7 +36,7 @@ export default function LogoutNav({ callStarted, setCallStarted, addScreenToStre
                             <i hidden={!callStarted} style={callStarted ? null : { display: 'none' }} onClick={addWebcamToStream?.current} className={sendWebcam ? "fa-solid fa-video call-controls-off" : "fa-solid fa-video call-controls-on"}></i>
                         </div>
                         <div className='tooltip' data-tooltip={'Display Yourself'}>
-                            <i hidden={!(callStarted && sendWebcam)} style={!(callStarted && sendWebcam) ? { display: 'none' } : null} onClick={hideVideoFunction} className="fa-solid fa-camera-rotate"></i>
+                            <i hidden={!(callStarted && sendWebcam)} style={!(callStarted && sendWebcam) ? { display: 'none' } : null} onClick={hideVideoFunction?.current} className="fa-solid fa-camera-rotate"></i>
                         </div>
                     </div>
                     <div className="left-nav-bar">
