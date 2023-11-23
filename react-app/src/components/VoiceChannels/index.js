@@ -67,7 +67,7 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
                 ]
             },
             sdpTransform: (sdp) => {
-                const sdp2 = setMediaBitrate(setMediaBitrate(sdp, 'video', 6000000), 'audio', 160000);
+                const sdp2 = setMediaBitrate(setMediaBitrate(sdp, 'video', 600000000), 'audio', 160000);
                 console.log(sdp2);
                 return sdp2;
             },
@@ -323,7 +323,7 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
                     width: { ideal: 1920, max: 3840 },
                     height: { ideal: 1080, max: 2160 },
                     frameRate: { ideal: 60 },
-                    sampleRate: 10000000
+                    sampleRate: 600000000
                 },
                 audio: { sampleRate: 160000 }
             }).then((res) => {
