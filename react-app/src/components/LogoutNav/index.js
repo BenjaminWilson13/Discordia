@@ -26,16 +26,16 @@ export default function LogoutNav({ callStarted, setCallStarted, addScreenToStre
             <>
                 <div style={isVoiceChannel ? { height: '120px' } : { height: '60px' }} className="bottom-nav">
                     <div style={isVoiceChannel ? { display: 'flex' } : { display: 'none' }} className='voice-controls-box'>
-                        <div className='tooltip' data-tooltip={'Start/End Call'}>
+                        <div className='tooltip-controls' data-tooltip={'Start/End Call'}>
                             <i alt='Start/End Call' onClick={callButtonFunction?.current} className={callStarted ? "fa-solid fa-phone-slash call-controls-off" : "fa-solid fa-phone-flip call-controls-on"}></i>
                         </div>
-                        <div className='tooltip' data-tooltip={'Start/End Screen Share'}>
+                        <div className='tooltip-controls' data-tooltip={'Start/End Screen Share'}>
                             <i hidden={!callStarted} style={callStarted ? null : { display: 'none' }} onClick={addScreenToStream?.current} className={sendScreen ? "fa-solid fa-display call-controls-off" : "fa-solid fa-display call-controls-on"}></i>
                         </div>
-                        <div className='tooltip' data-tooltip={'Start/End Webcam'}>
+                        <div className='tooltip-controls' data-tooltip={'Start/End Webcam'}>
                             <i hidden={!callStarted} style={callStarted ? null : { display: 'none' }} onClick={addWebcamToStream?.current} className={sendWebcam ? "fa-solid fa-video call-controls-off" : "fa-solid fa-video call-controls-on"}></i>
                         </div>
-                        <div className='tooltip' data-tooltip={'Display Yourself'}>
+                        <div className='tooltip-controls' data-tooltip={'Display Yourself'}>
                             <i hidden={!(callStarted && sendWebcam)} style={!(callStarted && sendWebcam) ? { display: 'none' } : null} onClick={hideVideoFunction?.current} className="fa-solid fa-camera-rotate"></i>
                         </div>
                     </div>
