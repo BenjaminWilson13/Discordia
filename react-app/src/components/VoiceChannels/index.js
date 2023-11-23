@@ -217,7 +217,7 @@ export default function VoiceChannels({callStarted, setCallStarted, addScreenToS
             })
             setCallStarted(!callStarted);
             releaseDevices();
-            if (videoToggle) hideVideoFunction();
+            if (videoToggle) hideVideoFunction.current();
             closeAllPeerConns();
             setSendWebcam(false);
             setSendScreen(false);
@@ -304,7 +304,7 @@ export default function VoiceChannels({callStarted, setCallStarted, addScreenToS
             }
             stopVideoRef.current.getTracks().forEach((track) => { track.stop(); })
             setSendWebcam(false);
-            hideVideoFunction();
+            hideVideoFunction.current();
         }
     }
 
