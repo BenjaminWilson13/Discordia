@@ -98,6 +98,36 @@ def seed_server_users():
         server_id = 1,
         role = "user"
     )
+    
+    ben2 = ServerUser(
+        user_id = User.query.filter(User.username == 'ben').first().id, 
+        server_id = 5, 
+        role = 'owner'
+    )
+    
+    luis = ServerUser(
+        user_id = User.query.filter(User.username == 'leeplayj').first().id, 
+        server_id = 5, 
+        role = 'admin'
+    )
+    
+    ryan = ServerUser(
+        user_id = User.query.filter(User.username == 'bloodshot').first().id, 
+        server_id = 5, 
+        role = 'admin'
+    )
+    
+    evan = ServerUser(
+        user_id = User.query.filter(User.username == 'corvax').first().id, 
+        server_id = 5, 
+        role = 'admin'
+    )
+    
+    cameron = ServerUser(
+        user_id = User.query.filter(User.username == 'camoman13').first().id, 
+        server_id = 5, 
+        role = 'admin'
+    )
 
 
     db.session.add(demo1)
@@ -116,6 +146,11 @@ def seed_server_users():
     db.session.add(ben1)
     db.session.add(jay1)
     db.session.add(mel1)
+    db.session.add(ben2)
+    db.session.add(luis)
+    db.session.add(ryan)
+    db.session.add(evan)
+    db.session.add(cameron)
 
     db.session.commit()
 

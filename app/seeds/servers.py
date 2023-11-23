@@ -28,6 +28,12 @@ def seed_servers():
             "owner_id": 7,
             "default_channel_id": 13
         },
+        {
+            "name": "Ben's Test Serv", 
+            "imageUrl": "https://discordia-aa.s3.us-west-1.amazonaws.com/shubham-dhage-t0Bv0OBQuTg-unsplash.jpg", 
+            "owner_id": 5, 
+            "default_channel_id": 14
+        }
 
     ]:
         db.session.add(Server(**server))

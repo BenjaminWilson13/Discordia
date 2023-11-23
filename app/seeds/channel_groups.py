@@ -44,6 +44,10 @@ def seed_channel_groups():
         {
             "server_id":4,
             "name": "General"
+        }, 
+        {
+            "server_id": 5, 
+            "name": "General"
         }
 
     ]:
