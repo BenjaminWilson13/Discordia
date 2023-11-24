@@ -67,7 +67,7 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
                 ]
             },
             sdpTransform: (sdp) => {
-                const sdp2 = setMediaBitrate(setMediaBitrate(sdp, 'video', 600000000), 'audio', 160000);
+                const sdp2 = setMediaBitrate(setMediaBitrate(sdp, 'video', 1000000), 'audio', 160000);
                 console.log(sdp2);
                 return sdp2;
             },
@@ -315,25 +315,58 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
         }
     }
 
-    addScreenToStream.current = (event) => {
-        event.preventDefault();
+    addScreenToStream.current = (event, resolution, frameRate) => {
+        event?.preventDefault();
+        let width;
+        let height;
+        let sampleRate;
         if (!sendScreen) {
+            console.log()
+            switch (resolution) {
+                case "720p":
+                    width = 1280;
+                    height = 720;
+                    sampleRate = 300000;
+                    break;
+                case "1080p":
+                    width = 1920;
+                    height = 1080;
+                    sampleRate = 700000;
+                    break;
+                case "4k":
+                    width = 3840;
+                    height = 2160;
+                    sampleRate = 14000000;
+                    break;
+                default:
+                    width = 1280;
+                    height = 720;
+                    sampleRate = 300000;
+                    frameRate = 30; 
+                    break; 
+            }
+            console.log(width, height, sampleRate, resolution)
             navigator.mediaDevices.getDisplayMedia({
                 video: {
-                    width: { ideal: 1920, max: 3840 },
-                    height: { ideal: 1080, max: 2160 },
-                    frameRate: { ideal: 60 },
-                    sampleRate: 600000000
+                    width: { ideal: width, max: width },
+                    height: { ideal: height, max: height },
+                    sampleRate: sampleRate,
+                    frameRate: { ideal: frameRate }
                 },
                 audio: { sampleRate: 160000 }
             }).then((res) => {
+                res.getVideoTracks().forEach((track) => {
+                    track.contentHint = "detail"
+                })
                 localDisplayRef.current = res;
                 for (let peerConn of Object.values(rtcPeers.current)) {
                     peerConn.addStream(res)
                 }
                 setSendScreen(true);
             }).catch((err) => {
-                console.error(err);
+                if (err.toString() === "NotReadableError: Could not start audio source") {
+                    alert("An error occured, if you tried to share system audio, it's not currently supported by most browsers")
+                }
                 return null;
             })
         } else {

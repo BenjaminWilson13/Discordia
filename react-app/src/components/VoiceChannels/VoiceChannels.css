@@ -7,6 +7,10 @@ video {
     border: blue 3px solid;
 }
 
+video:hover{
+    background-color: none;
+}
+
 
 #video-box {
     background-color: black;
