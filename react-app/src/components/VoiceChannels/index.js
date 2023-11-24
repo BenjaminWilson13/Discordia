@@ -361,10 +361,6 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
 
     return (
         <div className="voice-container">
-            {/* the username and room ID are temporary, just because there's problems with the voice channel seeding
-            and there's currently no way to add a voice channel to a server, they is what they is*/}
-            <label>{"Username: " + currentUser.userId}</label>
-            <label>{"Room Id: " + channelId}</label>
             <div hidden={!(sendScreen || sendWebcam)}>
                 {sendScreen ? "Your stream:" : null} 
                 <video id="localDisplay" autoPlay playsInline muted={true} ref={myDisplay} hidden={!sendScreen} ></video>
@@ -374,7 +370,10 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
             </div>
             <div id="video-box">
             </div>
-            {/* <button onClick={callButtonFunction.current}>{callStarted ? 'End Voice Chat' : 'Start Voice Chat'}</button>
+            {/* 
+            The old buttons, not sure if I'll have any use for them but I don't wanna get rid of them yet. 
+            
+            <button onClick={callButtonFunction.current}>{callStarted ? 'End Voice Chat' : 'Start Voice Chat'}</button>
             <br />
             <button hidden={!callStarted} onClick={addScreenToStream}>{sendScreen ? 'End Screen Share' : 'Start Screen Share'}</button>
             <br />
