@@ -5,8 +5,9 @@ import { useHistory } from "react-router-dom"
 import "./LogoutNav.css"
 import EditUserIcon from "../EditUserIcon";
 import { useState } from 'react';
+import ResolutionModal from '../ResolutionModal';
 
-export default function LogoutNav({ callStarted, setCallStarted, addScreenToStream, callButtonFunction, addWebcamToStream, hideVideoFunction, sendScreen, setSendScreen, sendWebcam, setSendWebcam, videoToggle, setVideoToggle }) {
+export default function LogoutNav({ callStarted, setCallStarted, addScreenToStream, callButtonFunction, addWebcamToStream, hideVideoFunction, sendScreen, setSendScreen, sendWebcam, setSendWebcam, videoToggle, setVideoToggle, resolution, setResolution }) {
     console.log(callStarted)
     const history = useHistory();
     const dispatch = useDispatch();
@@ -29,9 +30,21 @@ export default function LogoutNav({ callStarted, setCallStarted, addScreenToStre
                         <div className='tooltip-controls' data-tooltip={'Start/End Call'}>
                             <i alt='Start/End Call' onClick={callButtonFunction?.current} className={callStarted ? "fa-solid fa-phone-slash call-controls-off" : "fa-solid fa-phone-flip call-controls-on"}></i>
                         </div>
-                        <div className='tooltip-controls' data-tooltip={'Start/End Screen Share'}>
-                            <i hidden={!callStarted} style={callStarted ? null : { display: 'none' }} onClick={addScreenToStream?.current} className={sendScreen ? "fa-solid fa-display call-controls-off" : "fa-solid fa-display call-controls-on"}></i>
-                        </div>
+                        {sendScreen ?
+
+                            <div className='tooltip-controls' data-tooltip={'Start/End Screen Share'}>
+                                <i hidden={!callStarted} style={callStarted ? null : { display: 'none' }} onClick={addScreenToStream?.current} className={sendScreen ? "fa-solid fa-display call-controls-off" : "fa-solid fa-display call-controls-on"}></i>
+                            </div>
+                            :
+                            callStarted ? 
+                            <OpenModalButton
+                                modalComponent={<ResolutionModal resolution={resolution} setResolution={setResolution} addScreenToStream={addScreenToStream} sendScreen={sendScreen} />}
+                                buttonText={<i className="fa-solid fa-display call-controls-on"></i>}
+                                className={"update-conversation"}
+                            />
+                            : 
+                            null
+                        }
                         <div className='tooltip-controls' data-tooltip={'Start/End Webcam'}>
                             <i hidden={!callStarted} style={callStarted ? null : { display: 'none' }} onClick={addWebcamToStream?.current} className={sendWebcam ? "fa-solid fa-video call-controls-off" : "fa-solid fa-video call-controls-on"}></i>
                         </div>

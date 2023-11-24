@@ -33,6 +33,7 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
     const localDisplayRef = useRef(null);
     const rtcPeers = useRef({});
     const stopVideoRef = useRef(null);
+    const myDisplay = useRef(null);
     const currentUser = useSelector((state) => state.session.user);
     const localAudioRef = useRef(null);
 
@@ -67,18 +68,16 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
                 ]
             },
             sdpTransform: (sdp) => {
-                const sdp2 = setMediaBitrate(setMediaBitrate(sdp, 'video', 6000000), 'audio', 160000);
-                console.log(sdp2);
+                const sdp2 = setMediaBitrate(setMediaBitrate(sdp, 'video', 14000000), 'audio', 160000);
                 return sdp2;
             },
             reconnectTimer: 5000
 
-        }); 
+        });
         return pc;
     }
 
     async function newOffer(data, pc) {
-        console.log('newOffer', data)
         pc.remotePeerId = data.from;
 
         if (data.signal) pc.signal(data.signal)
@@ -88,7 +87,6 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
         })
 
         pc.on('connect', () => {
-            console.log("connected!, if there's more streams to send, we'll send 'em now~!", sendWebcam, stopVideoRef.current)
             if (stopVideoRef.current) {
                 pc.addStream(stopVideoRef.current)
             }
@@ -98,11 +96,9 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
         })
 
         pc.on('data', data => {
-            console.log(data)
         })
 
         pc.on('close', () => {
-            console.log('peer conn closing', pc);
             try {
                 destoryPeer(pc.remotePeerId);
             } catch (e) {
@@ -116,11 +112,9 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
         pc.on('stream', streams => {
             const videoWindow = document.createElement('video');
             streams.onremovetrack = () => {
-                console.log('trackRemoved!')
                 videoWindow.parentNode.removeChild(videoWindow)
             }
             if (streams.getVideoTracks().length === 0) {
-                console.log('new audio Stream!')
                 videoWindow.setAttribute('playsinline', 'true');
                 videoWindow.setAttribute('autoplay', 'true');
                 videoWindow.setAttribute('class', `user${pc.remotePeerId}VideoBox`);
@@ -131,7 +125,6 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
                 videoBox.appendChild(videoWindow);
 
             } else {
-                console.log('new video Stream!')
                 videoWindow.setAttribute('playsinline', 'true');
                 videoWindow.setAttribute('autoplay', 'true');
                 videoWindow.setAttribute('class', `user${pc.remotePeerId}VideoBox`);
@@ -144,14 +137,12 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
         })
 
         rtcPeers.current[pc.remotePeerId] = pc;
-        console.log(rtcPeers.current);
     }
 
 
     useEffect(() => {
         if (callStarted) {
             socket.on('newUserJoining', (data) => {
-                console.log('newUserJoining', data)
                 if (data.error) return;
                 newOffer(data, createPeerConnection(true));
             })
@@ -163,9 +154,7 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
     useEffect(() => {
 
         socket.on('signal', (data) => {
-            console.log(rtcPeers.current[data.from], data)
             if (!rtcPeers.current[data.from]) {
-                console.log('newUserFromSignal', data)
                 newOffer(data, createPeerConnection(false));
                 return;
             }
@@ -175,7 +164,6 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
         callButtonFunction.current();
 
         socket.on('userLeavingChannel', (data) => {
-            console.log(data);
         })
 
         return () => {
@@ -197,7 +185,6 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
     }, [])
 
     function destoryPeer(userId) {
-        console.log(rtcPeers, 'destroying')
         rtcPeers.current[userId].destroy();
         delete rtcPeers.current[userId];
         const videoElements = document.querySelectorAll(`.user${userId}VideoBox`);
@@ -207,7 +194,6 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
     }
 
     function closeAllPeerConns() {
-        console.log(rtcPeers.current, 'function')
         for (let pc of Object.values(rtcPeers.current)) {
             pc.destroy();
         }
@@ -215,7 +201,6 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
 
     callButtonFunction.current = (event) => {
         if (event) event.preventDefault();
-        console.log('starting call!')
         if (callStarted) {
             socket.emit("userLeavingChannel", {
                 "userId": currentUser.userId,
@@ -234,7 +219,6 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
                     video: false,
                     audio: true
                 }).then((res) => {
-                    console.log(localWebCamRef.current.srcObject)
                     setCallStarted(!callStarted);
                     localAudioRef.current = res;
                     socket.emit("userJoinedVoiceChannel", {
@@ -245,14 +229,13 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
 
                 })
             } catch (e) {
-                console.log("Can't start a video call without a camera! Or there was a problem with your camera!")
+                console.log("Can't start a voice call without a microphone! Or there was a problem with your microphone!")
                 console.error(e);
             }
         }
     }
 
     function releaseDevices() {
-        console.log(stopVideoRef.current, 'function')
         try {
             localAudioRef.current.getTracks().forEach((track) => track.stop());
             stopVideoRef.current.getTracks().forEach((track) => { track.stop(); })
@@ -266,7 +249,6 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
     }
 
     hideVideoFunction.current = (event) => {
-        console.log(document.getElementById('localVideo').hidden)
         if (event) {
             event.preventDefault();
         }
@@ -304,7 +286,6 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
                 console.error(e);
             }
         } else {
-            console.log(stopVideoRef.current.getTracks()[0])
             for (let peerConn of Object.values(rtcPeers.current)) {
                 peerConn.removeStream(stopVideoRef.current)
                 peerConn.send(`user${currentUser.userId}webcam`)
@@ -315,20 +296,57 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
         }
     }
 
-    addScreenToStream.current = (event) => {
-        event.preventDefault();
+    addScreenToStream.current = (event, resolution, frameRate) => {
+        event?.preventDefault();
+        let width;
+        let height;
+        let sampleRate;
         if (!sendScreen) {
+            switch (resolution) {
+                case "720p":
+                    width = 1280;
+                    height = 720;
+                    sampleRate = 300000;
+                    break;
+                case "1080p":
+                    width = 1920;
+                    height = 1080;
+                    sampleRate = 700000;
+                    break;
+                case "4k":
+                    width = 3840;
+                    height = 2160;
+                    sampleRate = 14000000;
+                    break;
+                default:
+                    width = 1280;
+                    height = 720;
+                    sampleRate = 300000;
+                    frameRate = 30;
+                    break;
+            }
             navigator.mediaDevices.getDisplayMedia({
-                video: true,
-                audio: true
+                video: {
+                    width: { ideal: width, max: width },
+                    height: { ideal: height, max: height },
+                    sampleRate: sampleRate,
+                    frameRate: { ideal: frameRate }
+                },
+                audio: { sampleRate: 160000 }
             }).then((res) => {
+                res.getVideoTracks().forEach((track) => {
+                    track.contentHint = "detail"
+                })
+                myDisplay.current.srcObject = res;
                 localDisplayRef.current = res;
                 for (let peerConn of Object.values(rtcPeers.current)) {
                     peerConn.addStream(res)
                 }
                 setSendScreen(true);
             }).catch((err) => {
-                console.error(err);
+                if (err.toString() === "NotReadableError: Could not start audio source") {
+                    alert("An error occured, if you tried to share system audio, it's not currently supported by most browsers")
+                }
                 return null;
             })
         } else {
@@ -347,8 +365,14 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
             and there's currently no way to add a voice channel to a server, they is what they is*/}
             <label>{"Username: " + currentUser.userId}</label>
             <label>{"Room Id: " + channelId}</label>
-            <div id="video-box">
+            <div hidden={!(sendScreen || sendWebcam)}>
+                {sendScreen ? "Your stream:" : null} 
+                <video id="localDisplay" autoPlay playsInline muted={true} ref={myDisplay} hidden={!sendScreen} ></video>
+
+                {sendWebcam ? "Your webcam:": null}
                 <video id="localVideo" muted={true} hidden={true} className="videoBox" autoPlay playsInline ref={localWebCamRef} />
+            </div>
+            <div id="video-box">
             </div>
             {/* <button onClick={callButtonFunction.current}>{callStarted ? 'End Voice Chat' : 'Start Voice Chat'}</button>
             <br />

@@ -18,6 +18,9 @@ def seed_voice_channels():
         }, {
             "server_id": 4,
             "name": "Voice Channel"
+        }, {
+            "server_id": 5, 
+            "name": "Testing"
         }
     ]:
         db.session.add(VoiceChannel(**channel))

@@ -55,10 +55,23 @@ def seed_users():
     user10 = User(
         username='user10', email='user10@aa.io', password='password', status='offline'
     )
-
+    user11 = User(
+        username='leeplayj', email='leeplayj@aa.io', password='password', status='offline'
+    )
+    user12 = User(
+        username='bloodshot', email='bloodshot@aa.io', password='password', status='offline'
+    )
+    user13 = User(
+        username='corvax', email='corvax@aa.io', password='password', status='offline'
+    )
+    user14 = User(
+        username='camoman13', email='camoman13@aa.io', password='password', status='offline'
+    )
     all_users = [
         demo, marnie, bobbie, bev, ben, jay, mel,
-        user1, user2, user3, user4, user5, user6, user7, user8, user9, user10
+        user1, user2, user3, user4, user5, user6, 
+        user7, user8, user9, user10, user11, user12, 
+        user13, user14
     ]
 
     for user in all_users:

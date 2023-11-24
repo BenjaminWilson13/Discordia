@@ -26,6 +26,7 @@ function App() {
   const [videoToggle, setVideoToggle] = useState(false);
   const [sendScreen, setSendScreen] = useState(false);
   const [sendWebcam, setSendWebcam] = useState(false);
+  const [resolution, setResolution] = useState("1080p")
 
   useEffect(() => {
     dispatch(authenticate()).then(() => setIsLoaded(true));
@@ -74,7 +75,9 @@ function App() {
                 sendWebcam={sendWebcam}
                 setSendWebcam={setSendWebcam}
                 videoToggle={videoToggle}
-                setVideoToggle={setVideoToggle} />
+                setVideoToggle={setVideoToggle}
+                resolution={resolution}
+                setResolution={setResolution} />
               <ServerUserList />
               <LogoutNav callStarted={callStarted}
                 callButtonFunction={callButtonFunction} 
@@ -87,7 +90,9 @@ function App() {
                 sendWebcam={sendWebcam} 
                 setSendWebcam={setSendWebcam} 
                 videoToggle={videoToggle} 
-                setVideoToggle={setVideoToggle} />
+                setVideoToggle={setVideoToggle}
+                resolution={resolution}
+                setResolution={setResolution} />
             </ProtectedRoute>
             <ProtectedRoute exact path="/channels/:serverId/:channelId">
               <Navigation isLoaded={isLoaded} />
