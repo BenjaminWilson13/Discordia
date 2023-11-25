@@ -12,19 +12,6 @@ import { getApiIceServers } from "../../store/voiceChannels";
 import { setMediaBitrate } from "./setMediaBitrate";
 const Peer = require('simple-peer')
 
-/* 
-    TODO: 
-        1. Add individual controls for starting webcam and sharing screen. Will have to figure out if I need to renogitate 
-        the peer connection to add them later.  - DONE!
-
-        2. Start webcam button should be down at the bottom next to start call. - DONE!
-        
-        3. Start screen share sould be down under the channel list, above the logout button in it's own box similar to how
-        discord currently functions. 
-
-*/
-
-
 
 export default function VoiceChannels({ callStarted, setCallStarted, addScreenToStream, callButtonFunction, addWebcamToStream, hideVideoFunction, sendScreen, setSendScreen, sendWebcam, setSendWebcam, videoToggle, setVideoToggle }) {
 
@@ -37,8 +24,8 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
     const currentUser = useSelector((state) => state.session.user);
     const localAudioRef = useRef(null);
 
-    function createPeerConnection(initiator) {
 
+    function createPeerConnection(initiator) {
         const pc = new Peer({
             initiator, stream: localAudioRef.current, config: {
                 iceServers: [
@@ -68,7 +55,7 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
                 ]
             },
             sdpTransform: (sdp) => {
-                const sdp2 = setMediaBitrate(setMediaBitrate(sdp, 'video', 14000000), 'audio', 160000);
+                const sdp2 = setMediaBitrate(setMediaBitrate(sdp, 'video', 14000000), 'audio', 384000);
                 return sdp2;
             },
             reconnectTimer: 5000
@@ -76,6 +63,7 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
         });
         return pc;
     }
+
 
     async function newOffer(data, pc) {
         pc.remotePeerId = data.from;
@@ -184,6 +172,7 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
         }
     }, [])
 
+
     function destoryPeer(userId) {
         rtcPeers.current[userId].destroy();
         delete rtcPeers.current[userId];
@@ -193,11 +182,13 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
         }
     }
 
+
     function closeAllPeerConns() {
         for (let pc of Object.values(rtcPeers.current)) {
             pc.destroy();
         }
     }
+
 
     callButtonFunction.current = (event) => {
         if (event) event.preventDefault();
@@ -217,7 +208,7 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
             try {
                 navigator.mediaDevices.getUserMedia({
                     video: false,
-                    audio: true
+                    audio: {sampleRate: 384000}
                 }).then((res) => {
                     setCallStarted(!callStarted);
                     localAudioRef.current = res;
@@ -235,6 +226,7 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
         }
     }
 
+
     function releaseDevices() {
         try {
             localAudioRef.current.getTracks().forEach((track) => track.stop());
@@ -248,6 +240,7 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
 
     }
 
+
     hideVideoFunction.current = (event) => {
         if (event) {
             event.preventDefault();
@@ -260,6 +253,7 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
             setVideoToggle(true)
         }
     }
+
 
     addWebcamToStream.current = (event) => {
         event.preventDefault();
@@ -295,6 +289,7 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
             hideVideoFunction.current();
         }
     }
+
 
     addScreenToStream.current = (event, resolution, frameRate) => {
         event?.preventDefault();
@@ -358,13 +353,10 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
             setSendScreen(false)
         }
     }
+    
 
     return (
         <div className="voice-container">
-            {/* the username and room ID are temporary, just because there's problems with the voice channel seeding
-            and there's currently no way to add a voice channel to a server, they is what they is*/}
-            <label>{"Username: " + currentUser.userId}</label>
-            <label>{"Room Id: " + channelId}</label>
             <div hidden={!(sendScreen || sendWebcam)}>
                 {sendScreen ? "Your stream:" : null} 
                 <video id="localDisplay" autoPlay playsInline muted={true} ref={myDisplay} hidden={!sendScreen} ></video>
@@ -374,7 +366,10 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
             </div>
             <div id="video-box">
             </div>
-            {/* <button onClick={callButtonFunction.current}>{callStarted ? 'End Voice Chat' : 'Start Voice Chat'}</button>
+            {/* 
+            The old buttons, not sure if I'll have any use for them but I don't wanna get rid of them yet. 
+
+            <button onClick={callButtonFunction.current}>{callStarted ? 'End Voice Chat' : 'Start Voice Chat'}</button>
             <br />
             <button hidden={!callStarted} onClick={addScreenToStream}>{sendScreen ? 'End Screen Share' : 'Start Screen Share'}</button>
             <br />

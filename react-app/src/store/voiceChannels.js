@@ -29,8 +29,7 @@ const deleteVoiceChannel = (data) => ({
 
 export const getVoiceChannelsByServerId = (serverId) => async (dispatch) => {
     const res = await fetch(`/api/voiceChannels/${serverId}`); 
-    const data = await res.json(); 
-    console.log(data, serverId)
+    const data = await res.json();
     if (res.ok) {
         dispatch(getVoiceChannelsByServer(data))
         return null; 
@@ -81,7 +80,6 @@ export const deleteChannelByChannelId = (channel_id) => async (dispatch) => {
     })
 
     const data = await res.json(); 
-    console.log(data); 
     if (res.ok) {
         dispatch(deleteVoiceChannel(channel_id)); 
         return null; 
@@ -107,7 +105,6 @@ export default function reducer (state = initialState, action) {
             newState.channels = {...newState.channels, ...action.payload}; 
             return newState; 
         case PUT_EDIT_VOICE_CHANNEL_NAME: 
-            console.log({...newState.channels, ...action.payload})
             newState.channels = {...newState.channels, ...action.payload}
             return newState; 
         case DELETE_VOICE_CHANNEL: 

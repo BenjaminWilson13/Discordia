@@ -8,7 +8,6 @@ import { useState } from 'react';
 import ResolutionModal from '../ResolutionModal';
 
 export default function LogoutNav({ callStarted, setCallStarted, addScreenToStream, callButtonFunction, addWebcamToStream, hideVideoFunction, sendScreen, setSendScreen, sendWebcam, setSendWebcam, videoToggle, setVideoToggle, resolution, setResolution }) {
-    console.log(callStarted)
     const history = useHistory();
     const dispatch = useDispatch();
     const isVoiceChannel = window.location.pathname.split('/')[1] === "voiceChannel";
@@ -17,11 +16,7 @@ export default function LogoutNav({ callStarted, setCallStarted, addScreenToStre
         dispatch(sessionActions.logout())
         history.push("/")
     }
-    const sessionUser = useSelector(state => state.session.user)
-    function handleCallClick(event) {
-        event.preventDefault();
-        callButtonFunction.current();
-    }
+    const sessionUser = useSelector(state => state.session.user); 
     try {
         return (
             <>
