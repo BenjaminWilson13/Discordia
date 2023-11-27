@@ -31,11 +31,15 @@ export default function ChannelMessages() {
   let [errors, setErrors] = useState({});
 
   useEffect(() => {
+    socket.emit("join_channel", {channelId}); 
     dispatch(getChannelMessagesThunk(channelId)).then(() =>
       setIsLoading(false)
     );
+    return () => {
+      socket.emit("leaving_channel", {channelId})
+    }
   }, [dispatch, channelId]);
-
+  
   useEffect(() => {
     if (channels[channelId]) {
       setMessages(channels[channelId].sort((a, b) => {
@@ -66,6 +70,7 @@ export default function ChannelMessages() {
 
     socket.on("update_channel_message", (channel_message) => {
       let channelId = channel_message.channelId
+      console.log('new update')
       dispatch(getChannelMessagesThunk(channelId));
     });
   }, [dispatch]);
