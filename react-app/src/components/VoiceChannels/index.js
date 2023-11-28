@@ -55,7 +55,9 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
                 ]
             },
             sdpTransform: (sdp) => {
-                const sdp2 = setMediaBitrate(setMediaBitrate(sdp, 'video', 14000000), 'audio', 384000);
+                const sdp2 = setMediaBitrate(setMediaBitrate(sdp, 'video', 14000000), 'audio', 520000);
+                console.log(sdp2.indexOf('useinbandfec=1'))
+                console.log(sdp2.slice(sdp2.indexOf('useinbandfec=1'), sdp2.indexOf('useinbandfec=1') + 100))
                 return sdp2;
             },
             reconnectTimer: 5000
@@ -208,7 +210,16 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
             try {
                 navigator.mediaDevices.getUserMedia({
                     video: false,
-                    audio: {sampleRate: 384000}
+                    audio: { 
+                        autoGainControl: false, 
+                        channelCount: 2, 
+                        echoCancellation: false, 
+                        latency: 0, 
+                        noiseSuppression: false, 
+                        sampleRate: 48000, 
+                        sampleSize: 16, 
+                        volume: 1.0
+                    }
                 }).then((res) => {
                     setCallStarted(!callStarted);
                     localAudioRef.current = res;
@@ -308,6 +319,11 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
                     height = 1080;
                     sampleRate = 700000;
                     break;
+                case "1440p":
+                    width = 2560;
+                    height = 1440;
+                    sampleRate = 10000000;
+                    break;
                 case "4k":
                     width = 3840;
                     height = 2160;
@@ -353,29 +369,19 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
             setSendScreen(false)
         }
     }
-    
+
 
     return (
         <div className="voice-container">
             <div hidden={!(sendScreen || sendWebcam)}>
-                {sendScreen ? "Your stream:" : null} 
+                {sendScreen ? "Your stream:" : null}
                 <video id="localDisplay" autoPlay playsInline muted={true} ref={myDisplay} hidden={!sendScreen} ></video>
 
-                {sendWebcam ? "Your webcam:": null}
+                {sendWebcam ? "Your webcam:" : null}
                 <video id="localVideo" muted={true} hidden={true} className="videoBox" autoPlay playsInline ref={localWebCamRef} />
             </div>
             <div id="video-box">
             </div>
-            {/* 
-            The old buttons, not sure if I'll have any use for them but I don't wanna get rid of them yet. 
-
-            <button onClick={callButtonFunction.current}>{callStarted ? 'End Voice Chat' : 'Start Voice Chat'}</button>
-            <br />
-            <button hidden={!callStarted} onClick={addScreenToStream}>{sendScreen ? 'End Screen Share' : 'Start Screen Share'}</button>
-            <br />
-            <button hidden={!callStarted} onClick={addWebcamToStream}>{sendWebcam ? 'Stop Webcam' : 'Start Webcam'}</button>
-            <br />
-            <button hidden={!(callStarted && sendWebcam)} onClick={hideVideoFunction}>{videoToggle ? "Hide Self" : "Show Self"}</button> */}
         </div>
     );
 }

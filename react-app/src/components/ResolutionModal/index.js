@@ -20,7 +20,7 @@ export default function ResolutionModal({ addScreenToStream, sendScreen }) {
         <div id="form-container">
             <h1 className="form-title">Stream Options</h1>
             <form className="form-box" onSubmit={handleSubmit}>
-                <h3 className="demo-title">Resolution </h3>
+                <h3 className="demo-title">Resolution:</h3>
                 <fieldset className="form-box" onChange={(event) => setResolution(event.target.value)}>
                     <label className="signup-labels">
                         <input type="radio" id="720p" name="resolution" value={"720p"} />
@@ -33,11 +33,16 @@ export default function ResolutionModal({ addScreenToStream, sendScreen }) {
                     </label>
 
                     <label className="signup-labels">
+                        <input type="radio" id="1440p" name="resolution" value={"1440p"} />
+                        1440p
+                    </label>
+
+                    <label className="signup-labels">
                         <input type="radio" id="4k" name="resolution" value={"4k"} />
                         4K
                     </label>
                 </fieldset>
-                <h3 className="demo-title">Resolution </h3>
+                <h3 className="demo-title">Frame Rate: </h3>
                 <fieldset className="form-box" onChange={(event) => setFrameRate(parseInt(event.target.value))}>
                     <label className="signup-labels">
                         <input type="radio" id="15" name="frameRate" value={15} />
@@ -45,7 +50,7 @@ export default function ResolutionModal({ addScreenToStream, sendScreen }) {
                     </label>
 
                     <label className="signup-labels">
-                        <input type="radio" id="30" name="frameRate" value={30} />
+                        <input type="radio" defaultChecked id="30" name="frameRate" value={30} />
                         30
                     </label>
 
