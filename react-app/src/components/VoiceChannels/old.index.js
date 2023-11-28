@@ -11,7 +11,6 @@ import "./VoiceChannels.css"
 import { getApiIceServers } from "../../store/voiceChannels";
 
 
-
 export default function VoiceChannels() {
     const { serverId, channelId } = useParams();
     const localVideoRef = useRef(null);
@@ -56,25 +55,25 @@ export default function VoiceChannels() {
                 videoBox.appendChild(video);
             }
 
-            
+
             pc.onnegotiationneeded = (event) => {
                 console.log('negotiation needed apparently', event, pc)
                 handleNegotiation(pc)
             }
-            
+
             pc.onsignalingstatechange = async (event) => {
                 console.log(pc.connectionState, pc.signalingState)
                 switch (pc.signalingState) {
                     case "stable":
                         break;
-    
+
                 }
             }
-    
+
             const offer = await pc.createOffer();
             await pc.setLocalDescription(offer);
             rtcPeers.current[data1.userId] = { "offer": offer, 'offerPC': pc, "offerer": { "userId": currentUser.userId, channelId, serverId }, 'answerer': data1 }
-    
+
             pc.onicecandidate = event => {
                 if (event.candidate !== null) {
                     socket.emit('iceCandidate', { 'candidate': event.candidate, 'to': currentUser.userId })
@@ -105,48 +104,48 @@ export default function VoiceChannels() {
         }
     }
 
-    function newJoinAndAnswer (data) {
+    function newJoinAndAnswer(data) {
         const configuration = {
-                offerToReceiveAudio: true,
-                offerToReceiveVideo: true
+            offerToReceiveAudio: true,
+            offerToReceiveVideo: true
+        }
+
+        let pc = new RTCPeerConnection({ configuration, iceServers })
+        navigator.mediaDevices.getUserMedia({
+            audio: true,
+            video: false
+        }).then(video => {
+            video.getTracks().forEach(track => {
+                pc.addTrack(track, video)
+            })
+        }).then(async (res) => {
+
+            await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+            pc.ontrack = event => {
+                console.log(event, 'event')
+                const videoBox = document.getElementById('video-box');
+                const video = document.createElement('video');
+                video.srcObject = event.streams[0];
+                videoBox.appendChild(video);
             }
 
-            let pc = new RTCPeerConnection({ configuration, iceServers })
-            navigator.mediaDevices.getUserMedia({
-                audio: true,
-                video: false
-            }).then(video => {
-                video.getTracks().forEach(track => {
-                    pc.addTrack(track, video)
-                })
-            }).then(async (res) => {
+            pc.onnegotiationneeded = (event) => {
+                console.log('negotiation needed apparently')
+            }
 
-                await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
-                pc.ontrack = event => {
-                    console.log(event, 'event')
-                    const videoBox = document.getElementById('video-box');
-                    const video = document.createElement('video');
-                    video.srcObject = event.streams[0];
-                    videoBox.appendChild(video);
+            pc.onsignalingstatechange = async (event) => {
+                console.log(pc.signalingState)
+            }
+            const answer = await pc.createAnswer(data.answer);
+            await pc.setLocalDescription(answer)
+            rtcPeers.current[data.offerer.userId] = { ...data, answer, 'answerPC': pc, 'polite': true }
+            pc.onicecandidate = event => {
+                if (event.candidate !== null) {
+                    socket.emit('iceCandidate', { 'candidate': event.candidate, 'to': currentUser.userId })
                 }
-
-                pc.onnegotiationneeded = (event) => {
-                    console.log('negotiation needed apparently')
-                }
-
-                pc.onsignalingstatechange = async (event) => {
-                    console.log(pc.signalingState)
-                }
-                const answer = await pc.createAnswer(data.answer);
-                await pc.setLocalDescription(answer)
-                rtcPeers.current[data.offerer.userId] = { ...data, answer, 'answerPC': pc, 'polite': true }
-                pc.onicecandidate = event => {
-                    if (event.candidate !== null) {
-                        socket.emit('iceCandidate', { 'candidate': event.candidate, 'to': currentUser.userId })
-                    }
-                }
-                socket.emit("answer", { ...data, answer })
-            })
+            }
+            socket.emit("answer", { ...data, answer })
+        })
     }
 
 
