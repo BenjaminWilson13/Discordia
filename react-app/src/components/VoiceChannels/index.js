@@ -117,7 +117,20 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
                 videoWindow.setAttribute('autoplay', 'true');
                 videoWindow.setAttribute('class', `user${pc.remotePeerId}VideoBox`);
                 videoWindow.setAttribute('type', 'video');
-                videoWindow.setAttribute('controls', 'true')
+                videoWindow.setAttribute('controls', 'true'); 
+                //an array of event types for wider compatibility
+                const events = ["fullscreenchange", "webkitfullscreenchange", "mozfullscreenchange", "msfullscreenchange"]; 
+                events.forEach(eventType =>
+                    document.addEventListener(eventType, function (event) {
+                        console.log(document.fullscreenElement)
+                        if (document.fullscreenElement) {
+                            event.target.style.border = 'none' 
+                        } else {
+                            event.target.style.border = 'blue 3px solid'
+                        }
+                    }, true)
+                );
+
                 videoWindow.srcObject = streams
                 const videoBox = document.getElementById('video-box')
                 videoBox.appendChild(videoWindow);
@@ -328,12 +341,12 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
                     height = 2160;
                     sampleRate = 14000000;
                     break;
-                case "absurd": 
-                    width = 3840; 
-                    height = 2160; 
-                    sampleRate = 68000000; 
+                case "absurd":
+                    width = 3840;
+                    height = 2160;
+                    sampleRate = 68000000;
                     console.log("Absurd chosen, good luck.")
-                    break; 
+                    break;
                 default:
                     width = 1280;
                     height = 720;
