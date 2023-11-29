@@ -16,31 +16,40 @@ export default function LogoutNav({ callStarted, setCallStarted, addScreenToStre
         dispatch(sessionActions.logout())
         history.push("/")
     }
-    const sessionUser = useSelector(state => state.session.user); 
+    const [component, refreshComponent] = useState(true);
+    console.log(sendScreen, 'component', component)
+    const sessionUser = useSelector(state => state.session.user);
     try {
         return (
             <>
                 <div style={isVoiceChannel ? { height: '120px' } : { height: '60px' }} className="bottom-nav">
                     <div style={isVoiceChannel ? { display: 'flex' } : { display: 'none' }} className='voice-controls-box'>
-                        <div className='tooltip-controls' data-tooltip={'Start/End Call'}>
+                        <div className='tooltip-controls' data-tooltip={callStarted ? 'End Call' : 'Start Call'}>
                             <i alt='Start/End Call' onClick={callButtonFunction?.current} className={callStarted ? "fa-solid fa-phone-slash call-controls-off" : "fa-solid fa-phone-flip call-controls-on"}></i>
                         </div>
-                        {sendScreen ?
+                        {
+                            callStarted ?
 
-                            <div className='tooltip-controls' data-tooltip={'Start/End Screen Share'}>
-                                <i hidden={!callStarted} style={callStarted ? null : { display: 'none' }} onClick={addScreenToStream?.current} className={sendScreen ? "fa-solid fa-display call-controls-off" : "fa-solid fa-display call-controls-on"}></i>
-                            </div>
-                            :
-                            callStarted ? 
-                            <OpenModalButton
-                                modalComponent={<ResolutionModal resolution={resolution} setResolution={setResolution} addScreenToStream={addScreenToStream} sendScreen={sendScreen} />}
-                                buttonText={<i className="fa-solid fa-display call-controls-on"></i>}
-                                className={"update-conversation"}
-                            />
-                            : 
-                            null
+                                sendScreen ?
+
+                                    <div className='tooltip-controls' data-tooltip={'End Screen Share'}>
+                                        <i onClick={addScreenToStream?.current} className={"fa-solid fa-display call-controls-off"}></i>
+                                    </div>
+
+                                    :
+                                    <div className='tooltip-controls' data-tooltip={'Start Screen Share'}>
+                                        <OpenModalButton
+                                            modalComponent={<ResolutionModal resolution={resolution} setResolution={setResolution} addScreenToStream={addScreenToStream} sendScreen={sendScreen} />}
+                                            buttonText={<i className="fa-solid fa-display call-controls-on"></i>}
+                                            className={"update-conversation"}
+                                        />
+                                    </div>
+
+                                :
+
+                                null
                         }
-                        <div className='tooltip-controls' data-tooltip={'Start/End Webcam'}>
+                        <div className='tooltip-controls' data-tooltip={sendWebcam ? 'End Webcam' : 'Start Webcam'}>
                             <i hidden={!callStarted} style={callStarted ? null : { display: 'none' }} onClick={addWebcamToStream?.current} className={sendWebcam ? "fa-solid fa-video call-controls-off" : "fa-solid fa-video call-controls-on"}></i>
                         </div>
                         <div className='tooltip-controls' data-tooltip={'Display Yourself'}>

@@ -55,10 +55,8 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
                 ]
             },
             sdpTransform: (sdp) => {
-                const sdp2 = setMediaBitrate(setMediaBitrate(sdp, 'video', 14000000), 'audio', 520000);
-                console.log(sdp2.indexOf('useinbandfec=1'))
-                console.log(sdp2.slice(sdp2.indexOf('useinbandfec=1'), sdp2.indexOf('useinbandfec=1') + 100))
-                return sdp2;
+                const sdp2 = setMediaBitrate(setMediaBitrate(sdp, 'video', 68000000), 'audio', 520000);
+                return sdp2.replace('useinbandfec=1', 'useinbandfec=1; stereo=1; maxaveragebitrate=520000');
             },
             reconnectTimer: 5000
 
@@ -210,14 +208,14 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
             try {
                 navigator.mediaDevices.getUserMedia({
                     video: false,
-                    audio: { 
-                        autoGainControl: false, 
-                        channelCount: 2, 
-                        echoCancellation: false, 
-                        latency: 0, 
-                        noiseSuppression: false, 
-                        sampleRate: 48000, 
-                        sampleSize: 16, 
+                    audio: {
+                        autoGainControl: false,
+                        channelCount: 2,
+                        echoCancellation: false,
+                        latency: 0,
+                        noiseSuppression: false,
+                        sampleRate: 48000,
+                        sampleSize: 16,
                         volume: 1.0
                     }
                 }).then((res) => {
@@ -304,6 +302,7 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
 
     addScreenToStream.current = (event, resolution, frameRate) => {
         event?.preventDefault();
+        setSendScreen(true);
         let width;
         let height;
         let sampleRate;
@@ -329,6 +328,12 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
                     height = 2160;
                     sampleRate = 14000000;
                     break;
+                case "absurd": 
+                    width = 3840; 
+                    height = 2160; 
+                    sampleRate = 68000000; 
+                    console.log("Absurd chosen, good luck.")
+                    break; 
                 default:
                     width = 1280;
                     height = 720;
@@ -351,13 +356,14 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
                 myDisplay.current.srcObject = res;
                 localDisplayRef.current = res;
                 for (let peerConn of Object.values(rtcPeers.current)) {
-                    peerConn.addStream(res)
+                    peerConn.addStream(res);
                 }
-                setSendScreen(true);
             }).catch((err) => {
                 if (err.toString() === "NotReadableError: Could not start audio source") {
                     alert("An error occured, if you tried to share system audio, it's not currently supported by most browsers")
                 }
+                console.error(err)
+                setSendScreen(false)
                 return null;
             })
         } else {

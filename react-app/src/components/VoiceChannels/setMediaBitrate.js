@@ -26,5 +26,5 @@ export const setMediaBitrate = (sdp, mediaType, bitrate) => {
     }
   
     // Then return the updated sdp content as a string
-    return sdpLines.join('\n').replace('useinbandfec=1', 'useinbandfec=1; stereo=1; maxaveragebitrate=520000');
+    return sdpLines.join('\n');
   };
