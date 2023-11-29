@@ -17,7 +17,6 @@ export default function LogoutNav({ callStarted, setCallStarted, addScreenToStre
         history.push("/")
     }
     const [component, refreshComponent] = useState(true);
-    console.log(sendScreen, 'component', component)
     const sessionUser = useSelector(state => state.session.user);
     try {
         return (
