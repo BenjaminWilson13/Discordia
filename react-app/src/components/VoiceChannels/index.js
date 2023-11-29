@@ -122,7 +122,6 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
                 const events = ["fullscreenchange", "webkitfullscreenchange", "mozfullscreenchange", "msfullscreenchange"]; 
                 events.forEach(eventType =>
                     document.addEventListener(eventType, function (event) {
-                        console.log(document.fullscreenElement)
                         if (document.fullscreenElement) {
                             event.target.style.border = 'none' 
                         } else {
@@ -307,6 +306,7 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
                 peerConn.send(`user${currentUser.userId}webcam`)
             }
             stopVideoRef.current.getTracks().forEach((track) => { track.stop(); })
+            stopVideoRef.current = null; 
             setSendWebcam(false);
             hideVideoFunction.current();
         }
@@ -382,9 +382,9 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
         } else {
             for (let peerConn of Object.values(rtcPeers.current)) {
                 peerConn.removeStream(localDisplayRef.current)
-                localDisplayRef.current.getTracks().forEach((track) => peerConn.send(track.id))
             }
             localDisplayRef.current.getTracks().forEach((track) => { track.stop(); })
+            localDisplayRef.current = null; 
             setSendScreen(false)
         }
     }
