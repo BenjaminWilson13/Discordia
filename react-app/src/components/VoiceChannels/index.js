@@ -364,7 +364,7 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
                 audio: { sampleRate: 160000 }
             }).then((res) => {
                 res.getVideoTracks().forEach((track) => {
-                    track.contentHint = "detail"
+                    track.contentHint = "motion"
                 })
                 myDisplay.current.srcObject = res;
                 localDisplayRef.current = res;
