@@ -8,10 +8,7 @@ export default function ResolutionModal({ addScreenToStream, sendScreen }) {
     const { closeModal } = useModal();
     const [resolution, setResolution] = useState("1080p")
     const [frameRate, setFrameRate] = useState(30)
-    if (sendScreen) {
-        closeModal();
-        addScreenToStream.current()
-    } 
+
     function handleSubmit(event) {
         closeModal();
         addScreenToStream.current(event, resolution, frameRate);
@@ -40,6 +37,13 @@ export default function ResolutionModal({ addScreenToStream, sendScreen }) {
                     <label className="signup-labels">
                         <input type="radio" id="4k" name="resolution" value={"4k"} />
                         4K
+                    </label>
+
+                    <label className="signup-labels">
+                        <input type="radio" id="absurd" name="resolution" value={"absurd"} />
+                        Absurd 
+                        <br/>
+                        *WARNING: This requires a monster computer and nearly 100mbps upload/download for you and everyone in the call.*
                     </label>
                 </fieldset>
                 <h3 className="demo-title">Frame Rate: </h3>
