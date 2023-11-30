@@ -396,7 +396,6 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
                 <video id="localVideo" muted={true} hidden={true} className="videoBox" autoPlay playsInline ref={localWebCamRef} />
             </div>
             <div id="video-box">
-                Channel id: {channelId}
             </div>
         </div>
     );
