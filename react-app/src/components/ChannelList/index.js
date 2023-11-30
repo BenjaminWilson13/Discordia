@@ -10,6 +10,7 @@ import EditVoiceChannelModal from "../EditVoiceChannelModal";
 import TitleBar from "../TitleBar";
 import { getVoiceChannelsByServerId, postNewVoiceChannelByServerId } from "../../store/voiceChannels";
 import { NavLink } from "react-router-dom/cjs/react-router-dom";
+import { socket } from "../../socket";
 
 export default function ChannelList() {
   const params = useParams();
@@ -18,12 +19,21 @@ export default function ChannelList() {
   const dispatch = useDispatch();
   const sessionUser = useSelector((state) => state.session.user);
   const serverDetails = useSelector((state) => state.servers.ServerDetails);
+  const serverUsers = serverDetails[serverId]?.users;
   const allServers = useSelector((state) => state.servers.AllServers);
   const [serverDetail, setServerDetail] = useState(null);
   const voiceChannels = useSelector((state) => state.voiceChannels.channels);
-
   const href = window.location.href;
-
+  const [voiceUsers, setVoiceUsers] = useState({})
+  useEffect(() => {
+    socket.emit('lookingAtServer', { serverId })
+    socket.on('usersInVoice', (data) => {
+      setVoiceUsers(data);
+    })
+    return () => {
+      socket.emit('leavingServer', { serverId })
+    }
+  }, [serverId])
 
   useEffect(() => {
     if (!Object.keys(allServers).length) {
@@ -107,18 +117,33 @@ export default function ChannelList() {
           Object.values(voiceChannels).map((voiceChannel) => {
             const channelName = voiceChannel.name
             return (
-              <div key={channelName} className="channel-container" onMouseOver={(e) => {
-                const button = document.getElementById(`channel-edit-${channelName}`)
-                button.className = "edit-channel-name-button"
-              }} onMouseLeave={(e) => {
-                const button = document.getElementById(`channel-edit-${channelName}`)
-                button.className = "hidden"
-              }} onClick={() => history.push(`/voiceChannel/${serverId}/${voiceChannel.id}`)}>
-                <span id="channel" style={voiceChannel.id == channelId && href.includes("voiceChannel") ? { color: "white", fontWeight: "bold" } : {}}><i className="fa-solid fa-hashtag"></i>{channelName}</span>
-                <OpenModalButton id={`channel-edit-${channelName}`} buttonText={(<i className="fa-solid fa-gear" style={{ backgroundColor: "var(--channel-hover)", fontSize: ".8rem" }}></i>)} className={"hidden"} modalComponent={<EditVoiceChannelModal voiceChannel={voiceChannel} defaultChannel={defaultChannel} />} />
-              </div>
+              <>
+                <div key={channelName} className="channel-container" onMouseOver={(e) => {
+                  const button = document.getElementById(`channel-edit-${channelName}`)
+                  button.className = "edit-channel-name-button"
+                }} onMouseLeave={(e) => {
+                  const button = document.getElementById(`channel-edit-${channelName}`)
+                  button.className = "hidden"
+                }} onClick={() => history.push(`/voiceChannel/${serverId}/${voiceChannel.id}`)}>
+                  <span id="channel" style={voiceChannel.id == channelId && href.includes("voiceChannel") ? { color: "white", fontWeight: "bold" } : {}}><i class="fa-phone-volume fa-solid"></i> {channelName}</span>
+                  <OpenModalButton id={`channel-edit-${channelName}`} buttonText={(<i className="fa-solid fa-gear" style={{ backgroundColor: "var(--channel-hover)", fontSize: ".8rem" }}></i>)} className={"hidden"} modalComponent={<EditVoiceChannelModal voiceChannel={voiceChannel} defaultChannel={defaultChannel} />} />
+                </div>
+                  {
+                    voiceUsers[voiceChannel.id]?.map((user) => {
+                      return (
+                        <div className="voice-user-container">
+                          <div className="vc-left">
 
-              // <NavLink to={`/voiceChannel/${serverId}/${voiceChannel.id}`}><div key={voiceChannel.id} className="channel-container"><i className="fa-solid fa-hashtag"></i>{voiceChannel.name}</div></ NavLink>
+                            <img className="vc-profile-img" src={serverUsers[user].userIcon} />
+                            <p className="dm-username">
+                              {serverUsers[user].username}
+                            </p>
+                          </div>
+                        </div>
+                      )
+                    })
+                  }
+              </>
             )
           })
         }

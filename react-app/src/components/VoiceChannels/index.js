@@ -23,6 +23,7 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
     const myDisplay = useRef(null);
     const currentUser = useSelector((state) => state.session.user);
     const localAudioRef = useRef(null);
+    const callStartedRef = useRef(callStarted); 
 
 
     function createPeerConnection(initiator) {
@@ -117,13 +118,13 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
                 videoWindow.setAttribute('autoplay', 'true');
                 videoWindow.setAttribute('class', `user${pc.remotePeerId}VideoBox`);
                 videoWindow.setAttribute('type', 'video');
-                videoWindow.setAttribute('controls', 'true'); 
+                videoWindow.setAttribute('controls', 'true');
                 //an array of event types for wider compatibility
-                const events = ["fullscreenchange", "webkitfullscreenchange", "mozfullscreenchange", "msfullscreenchange"]; 
+                const events = ["fullscreenchange", "webkitfullscreenchange", "mozfullscreenchange", "msfullscreenchange"];
                 events.forEach(eventType =>
                     document.addEventListener(eventType, function (event) {
                         if (document.fullscreenElement) {
-                            event.target.style.border = 'none' 
+                            event.target.style.border = 'none'
                         } else {
                             event.target.style.border = 'blue 3px solid'
                         }
@@ -161,28 +162,23 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
             rtcPeers.current[data.from].signal(data.signal)
         })
 
-        callButtonFunction.current();
-
+        
         socket.on('userLeavingChannel', (data) => {
         })
-
+        
         return () => {
-            socket.emit("userLeavingChannel", {
-                "userId": currentUser.userId,
-                'serverId': parseInt(serverId),
-                'channelId': parseInt(channelId)
-            })
             socket.off('signal');
             socket.off('userLeavingChannel');
             socket.off('newUserJoining');
-            releaseDevices();
-            closeAllPeerConns();
-            setCallStarted(false);
-            setVideoToggle(false);
-            setSendScreen(false);
-            setSendWebcam(false);
         }
     }, [])
+    
+    useEffect(() => {
+        callButtonFunction.current();
+        return () => {
+            if (callStartedRef.current) callButtonFunction.current(); 
+        }
+    }, [channelId, serverId])
 
 
     function destoryPeer(userId) {
@@ -204,13 +200,14 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
 
     callButtonFunction.current = (event) => {
         if (event) event.preventDefault();
-        if (callStarted) {
+        if (callStartedRef.current) {
             socket.emit("userLeavingChannel", {
                 "userId": currentUser.userId,
                 'serverId': parseInt(serverId),
                 'channelId': parseInt(channelId)
             })
-            setCallStarted(!callStarted);
+            setCallStarted(false);
+            callStartedRef.current = false; 
             releaseDevices();
             if (videoToggle) hideVideoFunction.current();
             closeAllPeerConns();
@@ -231,7 +228,8 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
                         volume: 1.0
                     }
                 }).then((res) => {
-                    setCallStarted(!callStarted);
+                    setCallStarted(true);
+                    callStartedRef.current = true; 
                     localAudioRef.current = res;
                     socket.emit("userJoinedVoiceChannel", {
                         "userId": currentUser.userId,
@@ -246,8 +244,6 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
             }
         }
     }
-
-
     function releaseDevices() {
         try {
             localAudioRef.current.getTracks().forEach((track) => track.stop());
@@ -306,7 +302,7 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
                 peerConn.send(`user${currentUser.userId}webcam`)
             }
             stopVideoRef.current.getTracks().forEach((track) => { track.stop(); })
-            stopVideoRef.current = null; 
+            stopVideoRef.current = null;
             setSendWebcam(false);
             hideVideoFunction.current();
         }
@@ -384,7 +380,7 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
                 peerConn.removeStream(localDisplayRef.current)
             }
             localDisplayRef.current.getTracks().forEach((track) => { track.stop(); })
-            localDisplayRef.current = null; 
+            localDisplayRef.current = null;
             setSendScreen(false)
         }
     }
@@ -400,6 +396,7 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
                 <video id="localVideo" muted={true} hidden={true} className="videoBox" autoPlay playsInline ref={localWebCamRef} />
             </div>
             <div id="video-box">
+                Channel id: {channelId}
             </div>
         </div>
     );

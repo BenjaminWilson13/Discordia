@@ -27,11 +27,11 @@ function App() {
   const [sendScreen, setSendScreen] = useState(false);
   const [sendWebcam, setSendWebcam] = useState(false);
   const [resolution, setResolution] = useState("1080p")
+  const [callStarted, setCallStarted] = useState(false)
 
   useEffect(() => {
     dispatch(authenticate()).then(() => setIsLoaded(true));
   }, [dispatch]);
-  const [callStarted, setCallStarted] = useState(false)
 
   return (
     <>
