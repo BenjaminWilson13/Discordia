@@ -118,23 +118,23 @@ export default function ChannelList({ voiceState, setVoiceState }) {
           Object.values(voiceChannels).map((voiceChannel) => {
             const channelName = voiceChannel.name
             return (
-              <>
-                <div key={channelName} className="channel-container" onMouseOver={(e) => {
+              <div key={channelName}>
+                <div className="channel-container" onMouseOver={(e) => {
                   const button = document.getElementById(`channel-edit-${channelName}`)
                   button.className = "edit-channel-name-button"
                 }} onMouseLeave={(e) => {
                   const button = document.getElementById(`channel-edit-${channelName}`)
                   button.className = "hidden"
                 }} onClick={() => history.push(`/voiceChannel/${serverId}/${voiceChannel.id}`)}>
-                  <span id="channel" style={voiceChannel.id == channelId && href.includes("voiceChannel") ? { color: "white", fontWeight: "bold" } : {}}><i class="fa-phone-volume fa-solid"></i> {channelName}</span>
+                  <span id="channel" style={voiceChannel.id == channelId && href.includes("voiceChannel") ? { color: "white", fontWeight: "bold" } : {}}><i className="fa-phone-volume fa-solid"></i> {channelName}</span>
                   <OpenModalButton id={`channel-edit-${channelName}`} buttonText={(<i className="fa-solid fa-gear" style={{ backgroundColor: "var(--channel-hover)", fontSize: ".8rem" }}></i>)} className={"hidden"} modalComponent={<EditVoiceChannelModal voiceChannel={voiceChannel} defaultChannel={defaultChannel} />} />
                 </div>
                 {
                   voiceUsers[voiceChannel.id]?.map((user) => {
                     return (
-                      <div className="voice-user-container">
+                      <div key={user + "user"} className="voice-user-container">
                         <div className="vc-left">
-                          <img className="vc-profile-img" style={voiceState && voiceState[user] === "true" ? { "border": "2px green solid"} : null} src={serverUsers[user].userIcon} />
+                          <img className="vc-profile-img" style={voiceState && voiceState[user] === "true" ? { "border": "2px green solid" } : null} src={serverUsers[user].userIcon} />
                           <p className="dm-username">
                             {serverUsers[user].username}
                           </p>
@@ -143,7 +143,7 @@ export default function ChannelList({ voiceState, setVoiceState }) {
                     )
                   })
                 }
-              </>
+              </div>
             )
           })
         }
