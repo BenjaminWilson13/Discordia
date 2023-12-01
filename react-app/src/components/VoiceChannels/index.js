@@ -98,6 +98,7 @@ export default function VoiceChannels({ voiceState, setVoiceState, callStarted, 
         pc.on('close', () => {
             try {
                 destoryPeer(pc.remotePeerId);
+                voiceActivity.current.stop(); 
             } catch (e) {
             }
         })
@@ -108,11 +109,11 @@ export default function VoiceChannels({ voiceState, setVoiceState, callStarted, 
 
         voiceActivity.current = Hark(localAudioRef.current)
         voiceActivity.current.on('speaking', () => {
-            pc.write("true")
+            pc.send("true")
         })
 
         voiceActivity.current.on('stopped_speaking', () => {
-            pc.write("false")
+            pc.send("false")
         })
 
         pc.on('stream', streams => {
@@ -193,7 +194,24 @@ export default function VoiceChannels({ voiceState, setVoiceState, callStarted, 
     useEffect(() => {
         callButtonFunction.current();
         return () => {
-            if (callStartedRef.current) callButtonFunction.current();
+            if (callStartedRef.current) {
+                voiceActivity.current.stop(); 
+                socket.emit("userLeavingChannel", {
+                    "userId": currentUser.userId,
+                    'serverId': parseInt(serverId),
+                    'channelId': parseInt(channelId)
+                })
+                setCallStarted(false);
+                callStartedRef.current = false;
+                releaseDevices();
+                if (videoToggle) hideVideoFunction.current();
+                closeAllPeerConns();
+                setSendWebcam(false);
+                setSendScreen(false);
+            }
+            setVoiceState({}); 
+            voiceStateRef.current = {}; 
+            rtcPeers.current = {}; 
         }
     }, [channelId, serverId])
 
@@ -230,6 +248,8 @@ export default function VoiceChannels({ voiceState, setVoiceState, callStarted, 
             closeAllPeerConns();
             setSendWebcam(false);
             setSendScreen(false);
+            setVoiceState({}); 
+            voiceStateRef.current = {}; 
         } else {
             try {
                 navigator.mediaDevices.getUserMedia({
