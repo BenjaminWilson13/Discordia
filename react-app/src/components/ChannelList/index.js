@@ -12,7 +12,7 @@ import { getVoiceChannelsByServerId, postNewVoiceChannelByServerId } from "../..
 import { NavLink } from "react-router-dom/cjs/react-router-dom";
 import { socket } from "../../socket";
 
-export default function ChannelList() {
+export default function ChannelList({voiceState, setVoiceState}) {
   const params = useParams();
   const history = useHistory();
   const { serverId, channelId } = params;
@@ -25,6 +25,7 @@ export default function ChannelList() {
   const voiceChannels = useSelector((state) => state.voiceChannels.channels);
   const href = window.location.href;
   const [voiceUsers, setVoiceUsers] = useState({})
+
   useEffect(() => {
     socket.emit('lookingAtServer', { serverId })
     socket.on('usersInVoice', (data) => {
@@ -134,7 +135,7 @@ export default function ChannelList() {
                         <div className="voice-user-container">
                           <div className="vc-left">
 
-                            <img className="vc-profile-img" src={serverUsers[user].userIcon} />
+                            <img className="vc-profile-img" style={voiceState && voiceState[user] === "true" ? {"border" : "2px green solid"} : null} src={serverUsers[user].userIcon} />
                             <p className="dm-username">
                               {serverUsers[user].username}
                             </p>
