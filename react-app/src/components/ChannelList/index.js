@@ -12,7 +12,7 @@ import { getVoiceChannelsByServerId, postNewVoiceChannelByServerId } from "../..
 import { NavLink } from "react-router-dom/cjs/react-router-dom";
 import { socket } from "../../socket";
 
-export default function ChannelList({voiceState, setVoiceState}) {
+export default function ChannelList({ voiceState, setVoiceState }) {
   const params = useParams();
   const history = useHistory();
   const { serverId, channelId } = params;
@@ -129,21 +129,20 @@ export default function ChannelList({voiceState, setVoiceState}) {
                   <span id="channel" style={voiceChannel.id == channelId && href.includes("voiceChannel") ? { color: "white", fontWeight: "bold" } : {}}><i class="fa-phone-volume fa-solid"></i> {channelName}</span>
                   <OpenModalButton id={`channel-edit-${channelName}`} buttonText={(<i className="fa-solid fa-gear" style={{ backgroundColor: "var(--channel-hover)", fontSize: ".8rem" }}></i>)} className={"hidden"} modalComponent={<EditVoiceChannelModal voiceChannel={voiceChannel} defaultChannel={defaultChannel} />} />
                 </div>
-                  {
-                    voiceUsers[voiceChannel.id]?.map((user) => {
-                      return (
-                        <div className="voice-user-container">
-                          <div className="vc-left">
-
-                            <img className="vc-profile-img" style={voiceState && voiceState[user] === "true" ? {"border" : "2px green solid"} : null} src={serverUsers[user].userIcon} />
-                            <p className="dm-username">
-                              {serverUsers[user].username}
-                            </p>
-                          </div>
+                {
+                  voiceUsers[voiceChannel.id]?.map((user) => {
+                    return (
+                      <div className="voice-user-container">
+                        <div className="vc-left">
+                          <img className="vc-profile-img" style={voiceState && voiceState[user] === "true" ? { "border": "2px green solid"} : null} src={serverUsers[user].userIcon} />
+                          <p className="dm-username">
+                            {serverUsers[user].username}
+                          </p>
                         </div>
-                      )
-                    })
-                  }
+                      </div>
+                    )
+                  })
+                }
               </>
             )
           })
