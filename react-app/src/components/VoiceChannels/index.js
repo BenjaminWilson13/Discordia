@@ -25,7 +25,7 @@ export default function VoiceChannels({ voiceState, setVoiceState, callStarted, 
     const currentUser = useSelector((state) => state.session.user);
     const localAudioRef = useRef(null);
     const callStartedRef = useRef(callStarted);
-    const voiceActivity = useRef({});
+    const voiceActivity = useRef(null);
     const voiceStateRef = useRef({});
 
 
@@ -195,7 +195,7 @@ export default function VoiceChannels({ voiceState, setVoiceState, callStarted, 
         callButtonFunction.current();
         return () => {
             if (callStartedRef.current) {
-                voiceActivity.current.stop(); 
+                voiceActivity.current?.stop(); 
                 socket.emit("userLeavingChannel", {
                     "userId": currentUser.userId,
                     'serverId': parseInt(serverId),
