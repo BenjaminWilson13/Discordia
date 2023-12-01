@@ -26,8 +26,9 @@ function App() {
   const [videoToggle, setVideoToggle] = useState(false);
   const [sendScreen, setSendScreen] = useState(false);
   const [sendWebcam, setSendWebcam] = useState(false);
-  const [resolution, setResolution] = useState("1080p")
-  const [callStarted, setCallStarted] = useState(false)
+  const [resolution, setResolution] = useState("1080p");
+  const [callStarted, setCallStarted] = useState(false);
+  const [voiceState, setVoiceState] = useState({});
 
   useEffect(() => {
     dispatch(authenticate()).then(() => setIsLoaded(true));
@@ -63,7 +64,9 @@ function App() {
             </ProtectedRoute>
             <ProtectedRoute exact path="/voiceChannel/:serverId/:channelId">
               <Navigation isLoaded={isLoaded} />
-              <ChannelList />
+              <ChannelList
+                voiceState={voiceState}
+                setVoiceState={setVoiceState} />
               <VoiceChannels callStarted={callStarted}
                 callButtonFunction={callButtonFunction}
                 setCallStarted={setCallStarted}
@@ -77,22 +80,26 @@ function App() {
                 videoToggle={videoToggle}
                 setVideoToggle={setVideoToggle}
                 resolution={resolution}
-                setResolution={setResolution} />
+                setResolution={setResolution}
+                voiceState={voiceState}
+                setVoiceState={setVoiceState} />
               <ServerUserList />
               <LogoutNav callStarted={callStarted}
-                callButtonFunction={callButtonFunction} 
-                setCallStarted={setCallStarted} 
-                addScreenToStream={addScreenToStream} 
-                addWebcamToStream={addWebcamToStream} 
-                hideVideoFunction={hideVideoFunction} 
-                sendScreen={sendScreen} 
-                setSendScreen={setSendScreen} 
-                sendWebcam={sendWebcam} 
-                setSendWebcam={setSendWebcam} 
-                videoToggle={videoToggle} 
+                callButtonFunction={callButtonFunction}
+                setCallStarted={setCallStarted}
+                addScreenToStream={addScreenToStream}
+                addWebcamToStream={addWebcamToStream}
+                hideVideoFunction={hideVideoFunction}
+                sendScreen={sendScreen}
+                setSendScreen={setSendScreen}
+                sendWebcam={sendWebcam}
+                setSendWebcam={setSendWebcam}
+                videoToggle={videoToggle}
                 setVideoToggle={setVideoToggle}
                 resolution={resolution}
-                setResolution={setResolution} />
+                setResolution={setResolution}
+                voiceState={voiceState}
+                setVoiceState={setVoiceState} />
             </ProtectedRoute>
             <ProtectedRoute exact path="/channels/:serverId/:channelId">
               <Navigation isLoaded={isLoaded} />

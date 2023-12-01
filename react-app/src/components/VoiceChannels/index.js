@@ -7,13 +7,14 @@ import MessageDetails from "../MessageDetails";
 import OpenModalButton from "../OpenModalButton";
 import socketio from "socket.io-client";
 import { socket } from "../../socket";
-import "./VoiceChannels.css"
+import "./VoiceChannels.css";
 import { getApiIceServers } from "../../store/voiceChannels";
 import { setMediaBitrate } from "./setMediaBitrate";
-const Peer = require('simple-peer')
+const Peer = require('simple-peer');
+const Hark = require('hark');
 
 
-export default function VoiceChannels({ callStarted, setCallStarted, addScreenToStream, callButtonFunction, addWebcamToStream, hideVideoFunction, sendScreen, setSendScreen, sendWebcam, setSendWebcam, videoToggle, setVideoToggle }) {
+export default function VoiceChannels({ voiceState, setVoiceState, callStarted, setCallStarted, addScreenToStream, callButtonFunction, addWebcamToStream, hideVideoFunction, sendScreen, setSendScreen, sendWebcam, setSendWebcam, videoToggle, setVideoToggle }) {
 
     const { serverId, channelId } = useParams();
     const localWebCamRef = useRef(null);
@@ -23,7 +24,9 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
     const myDisplay = useRef(null);
     const currentUser = useSelector((state) => state.session.user);
     const localAudioRef = useRef(null);
-    const callStartedRef = useRef(callStarted); 
+    const callStartedRef = useRef(callStarted);
+    const voiceActivity = useRef({});
+    const voiceStateRef = useRef({});
 
 
     function createPeerConnection(initiator) {
@@ -85,6 +88,11 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
         })
 
         pc.on('data', data => {
+            const string = new TextDecoder().decode(data);
+            const newState = { ...voiceStateRef.current };
+            newState[pc.remotePeerId] = string;
+            setVoiceState(newState);
+            voiceStateRef.current = newState;
         })
 
         pc.on('close', () => {
@@ -96,6 +104,15 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
 
         pc.on('error', error => {
             console.error(error)
+        })
+
+        voiceActivity.current = Hark(localAudioRef.current)
+        voiceActivity.current.on('speaking', () => {
+            pc.write("true")
+        })
+
+        voiceActivity.current.on('stopped_speaking', () => {
+            pc.write("false")
         })
 
         pc.on('stream', streams => {
@@ -162,21 +179,21 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
             rtcPeers.current[data.from].signal(data.signal)
         })
 
-        
+
         socket.on('userLeavingChannel', (data) => {
         })
-        
+
         return () => {
             socket.off('signal');
             socket.off('userLeavingChannel');
             socket.off('newUserJoining');
         }
     }, [])
-    
+
     useEffect(() => {
         callButtonFunction.current();
         return () => {
-            if (callStartedRef.current) callButtonFunction.current(); 
+            if (callStartedRef.current) callButtonFunction.current();
         }
     }, [channelId, serverId])
 
@@ -207,7 +224,7 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
                 'channelId': parseInt(channelId)
             })
             setCallStarted(false);
-            callStartedRef.current = false; 
+            callStartedRef.current = false;
             releaseDevices();
             if (videoToggle) hideVideoFunction.current();
             closeAllPeerConns();
@@ -229,8 +246,21 @@ export default function VoiceChannels({ callStarted, setCallStarted, addScreenTo
                     }
                 }).then((res) => {
                     setCallStarted(true);
-                    callStartedRef.current = true; 
+                    callStartedRef.current = true;
                     localAudioRef.current = res;
+                    const voiceActivity = Hark(res);
+                    voiceActivity.on("speaking", () => {
+                        const newState = { ...voiceStateRef.current };
+                        newState[currentUser.userId] = 'true';
+                        setVoiceState(newState);
+                        voiceStateRef.current = newState;
+                    })
+                    voiceActivity.on('stopped_speaking', () => {
+                        const newState = { ...voiceStateRef.current };
+                        newState[currentUser.userId] = 'false';
+                        setVoiceState(newState);
+                        voiceStateRef.current = newState;
+                    })
                     socket.emit("userJoinedVoiceChannel", {
                         "userId": currentUser.userId,
                         'serverId': parseInt(serverId),
