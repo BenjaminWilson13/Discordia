@@ -7,14 +7,20 @@ import EditUserIcon from "../EditUserIcon";
 import { useState } from 'react';
 import ResolutionModal from '../ResolutionModal';
 
-export default function LogoutNav({ callStarted, setCallStarted, addScreenToStream, callButtonFunction, addWebcamToStream, hideVideoFunction, sendScreen, setSendScreen, sendWebcam, setSendWebcam, videoToggle, setVideoToggle, resolution, setResolution }) {
+export default function LogoutNav({ localAudioRef, callStarted, setCallStarted, addScreenToStream, callButtonFunction, addWebcamToStream, hideVideoFunction, sendScreen, setSendScreen, sendWebcam, setSendWebcam, videoToggle, setVideoToggle, resolution, setResolution }) {
     const history = useHistory();
     const dispatch = useDispatch();
     const isVoiceChannel = window.location.pathname.split('/')[1] === "voiceChannel";
+    const [micMuted, setMicMuted] = useState(false);
     const logout = (e) => {
         e.preventDefault()
         dispatch(sessionActions.logout())
         history.push("/")
+    }
+    function handleMute(event) {
+        event.preventDefault();
+        localAudioRef.current.getAudioTracks().forEach((track) => track.enabled = !track.enabled); 
+        setMicMuted(!micMuted)
     }
     const [component, refreshComponent] = useState(true);
     const sessionUser = useSelector(state => state.session.user);
@@ -51,8 +57,11 @@ export default function LogoutNav({ callStarted, setCallStarted, addScreenToStre
                         <div className='tooltip-controls' data-tooltip={sendWebcam ? 'End Webcam' : 'Start Webcam'}>
                             <i hidden={!callStarted} style={callStarted ? null : { display: 'none' }} onClick={addWebcamToStream?.current} className={sendWebcam ? "fa-solid fa-video call-controls-off" : "fa-solid fa-video call-controls-on"}></i>
                         </div>
+                        <div className='tooltip-controls' data-tooltip={micMuted ? "Unmute" : "Mute"} >
+                            <i className={micMuted ? "fa-solid fa-volume-high call-controls-on" : "fa-solid fa-volume-xmark call-controls-off"} onClick={handleMute}></i>
+                        </div>
                         <div className='tooltip-controls' data-tooltip={'Display Yourself'}>
-                            <i hidden={!(callStarted && sendWebcam)} style={!(callStarted && sendWebcam) ? { display: 'none' } : null} onClick={hideVideoFunction?.current} className="fa-solid fa-camera-rotate"></i>
+                            <i hidden={!(callStarted && sendWebcam)} style={!(callStarted && sendWebcam) ? { "display": 'none', "position": "absolute" } : null} onClick={hideVideoFunction?.current} className="fa-solid fa-camera-rotate"></i>
                         </div>
                     </div>
                     <div className="left-nav-bar">

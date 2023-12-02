@@ -29,6 +29,7 @@ function App() {
   const [resolution, setResolution] = useState("1080p");
   const [callStarted, setCallStarted] = useState(false);
   const [voiceState, setVoiceState] = useState({});
+  const localAudioRef = useRef(null);
 
   useEffect(() => {
     dispatch(authenticate()).then(() => setIsLoaded(true));
@@ -82,7 +83,8 @@ function App() {
                 resolution={resolution}
                 setResolution={setResolution}
                 voiceState={voiceState}
-                setVoiceState={setVoiceState} />
+                setVoiceState={setVoiceState}
+                localAudioRef={localAudioRef} />
               <ServerUserList />
               <LogoutNav callStarted={callStarted}
                 callButtonFunction={callButtonFunction}
@@ -99,7 +101,8 @@ function App() {
                 resolution={resolution}
                 setResolution={setResolution}
                 voiceState={voiceState}
-                setVoiceState={setVoiceState} />
+                setVoiceState={setVoiceState} 
+                localAudioRef={localAudioRef} />
             </ProtectedRoute>
             <ProtectedRoute exact path="/channels/:serverId/:channelId">
               <Navigation isLoaded={isLoaded} />
