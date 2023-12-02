@@ -17,6 +17,8 @@ class Server(db.Model):
     channels = db.relationship("Channel", back_populates='server')
     serverUsers = db.relationship('ServerUser', back_populates='server', cascade="delete-orphan, all")
     voice_channels = db.relationship("VoiceChannel", back_populates="server", cascade="delete-orphan, all")
+    server_invites = db.relationship("ServerInvite", back_populates="server", cascade="delete-orphan, all")
+
 
     def to_dict(self):
         return {

@@ -44,3 +44,5 @@ class User(db.Model, UserMixin):
     directMessageReactions = db.relationship("DirectMessageReaction", back_populates="user")
     servers = db.relationship("Server", back_populates="owner")
     serverUsers = db.relationship("ServerUser", back_populates="user")
+    server_invites = db.relationship("ServerInvite", back_populates="user", cascade="delete-orphan, all")
+    
