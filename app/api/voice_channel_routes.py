@@ -4,7 +4,7 @@ from app.models import Channel, ChannelGroup, User, PrivateChannel, ServerUser, 
 from app.forms import ServerUserForm, ServerForm, ChannelForm, VoiceChannelForm
 from app.api.utils import get_user_role
 from sqlalchemy import or_
-import requests
+# import requests
 import json
 
 

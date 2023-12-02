@@ -3,11 +3,13 @@ import "./TitleBar.css"
 import DropDownButton from "../DropDownButton";
 import { useParams } from "react-router-dom/cjs/react-router-dom.min";
 import { useSelector } from "react-redux";
+import InboxDropdown from "./InboxDropdown";
 
 function TitleBar({ title, users }) {
     const { serverId, conversationId } = useParams();
     const conversationUsers = useSelector(state => state.userConversations)
     const userStatuses = useSelector((state) => state.onlineStatus.UserStatus)
+
     const conversation = Object.values(conversationUsers).filter(convo => {
         return convo.conversation_id === +conversationId
     })[0]
@@ -31,6 +33,8 @@ function TitleBar({ title, users }) {
 
 
 
+
+
     if (isLoading) return (<div className="top-bar"><div id="channel-top-title"></div></div>)
 
     let header = conversation ? conversation.username : title;
@@ -44,6 +48,7 @@ function TitleBar({ title, users }) {
 
                 ></img>) : <i className="fa-solid fa-hashtag title-icon"></i>}
                 <h1 className="top-title">{header}</h1>
+                <InboxDropdown />
             </div>
         </div>
     )

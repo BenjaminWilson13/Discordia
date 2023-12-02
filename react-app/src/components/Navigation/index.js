@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink, Redirect, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import "./Navigation.css";
@@ -55,6 +55,12 @@ function Navigation({ isLoaded }) {
     return () => socket.disconnect()
 
   }, [sessionUser])
+
+
+
+
+
+
   if (!isLoaded) return (<Redirect to="/" />)
   if (!servers) return null;
   const root = window.document.getElementById('root')

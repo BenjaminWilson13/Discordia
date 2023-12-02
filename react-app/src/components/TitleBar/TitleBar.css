@@ -47,3 +47,31 @@ i.fa-solid.fa-hashtag.title-icon {
   margin: 0 0.4rem;
   cursor: pointer;
 }
+
+.inbox {
+  padding: 0.8rem;
+  background-color: var(--center-page);
+  margin-left: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+i.fa-solid.fa-inbox.fa-2xs {
+  background-color: transparent;
+  font-size: 1.3rem;
+  color: var(--text)
+}
+
+i.fa-inbox::after {
+  content: "";
+  width: .6rem;
+  height: .6rem;
+  background-color: red;
+  border-radius: 100%;
+  position: absolute;
+  right: 25%;
+  bottom: 18%;
+  /* display: none */
+}

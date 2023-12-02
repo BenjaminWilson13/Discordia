@@ -1,6 +1,6 @@
 from app.models import db, VoiceChannel, environment, SCHEMA
 from sqlalchemy.sql import text
-import requests
+# import requests
 import json
 
 
