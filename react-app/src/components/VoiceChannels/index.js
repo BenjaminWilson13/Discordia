@@ -14,7 +14,7 @@ const Peer = require('simple-peer');
 const Hark = require('hark');
 
 
-export default function VoiceChannels({ voiceState, setVoiceState, callStarted, setCallStarted, addScreenToStream, callButtonFunction, addWebcamToStream, hideVideoFunction, sendScreen, setSendScreen, sendWebcam, setSendWebcam, videoToggle, setVideoToggle }) {
+export default function VoiceChannels({ localAudioRef, voiceState, setVoiceState, callStarted, setCallStarted, addScreenToStream, callButtonFunction, addWebcamToStream, hideVideoFunction, sendScreen, setSendScreen, sendWebcam, setSendWebcam, videoToggle, setVideoToggle }) {
 
     const { serverId, channelId } = useParams();
     const localWebCamRef = useRef(null);
@@ -23,7 +23,7 @@ export default function VoiceChannels({ voiceState, setVoiceState, callStarted, 
     const stopVideoRef = useRef(null);
     const myDisplay = useRef(null);
     const currentUser = useSelector((state) => state.session.user);
-    const localAudioRef = useRef(null);
+    
     const callStartedRef = useRef(callStarted);
     const voiceActivity = useRef(null);
     const voiceStateRef = useRef({});
@@ -109,11 +109,11 @@ export default function VoiceChannels({ voiceState, setVoiceState, callStarted, 
 
         voiceActivity.current = Hark(localAudioRef.current)
         voiceActivity.current.on('speaking', () => {
-            pc.send("true")
+            pc?.write("true")
         })
 
         voiceActivity.current.on('stopped_speaking', () => {
-            pc.send("false")
+            pc?.write("false")
         })
 
         pc.on('stream', streams => {
