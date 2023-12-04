@@ -12,18 +12,21 @@ export default function LogoutNav({ localAudioRef, callStarted, setCallStarted, 
     const dispatch = useDispatch();
     const isVoiceChannel = window.location.pathname.split('/')[1] === "voiceChannel";
     const [micMuted, setMicMuted] = useState(false);
+    const [component, refreshComponent] = useState(true);
+    const sessionUser = useSelector(state => state.session.user);
+
     const logout = (e) => {
         e.preventDefault()
         dispatch(sessionActions.logout())
         history.push("/")
     }
+    
     function handleMute(event) {
         event.preventDefault();
         localAudioRef.current.getAudioTracks().forEach((track) => track.enabled = !track.enabled); 
         setMicMuted(!micMuted)
     }
-    const [component, refreshComponent] = useState(true);
-    const sessionUser = useSelector(state => state.session.user);
+    
     try {
         return (
             <>

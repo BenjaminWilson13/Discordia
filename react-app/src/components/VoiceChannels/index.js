@@ -31,7 +31,9 @@ export default function VoiceChannels({ localAudioRef, voiceState, setVoiceState
 
     function createPeerConnection(initiator) {
         const pc = new Peer({
-            initiator, stream: localAudioRef.current, config: {
+            initiator, 
+            stream: localAudioRef.current, 
+            config: {
                 iceServers: [
                     {
                         urls: "stun:stun.relay.metered.ca:80",
@@ -62,8 +64,15 @@ export default function VoiceChannels({ localAudioRef, voiceState, setVoiceState
                 const sdp2 = setMediaBitrate(setMediaBitrate(sdp, 'video', 68000000), 'audio', 520000);
                 return sdp2.replace('useinbandfec=1', 'useinbandfec=1; stereo=1; maxaveragebitrate=520000');
             },
-            reconnectTimer: 5000
-
+            reconnectTimer: 5000, 
+            offerOptions: {
+                offerToReceiveAudio: true, 
+                offerToReceiveVideo: true
+            },
+            answerOptions: {
+                offerToReceiveAudio: true, 
+                offerToReceiveVideo: true
+            }
         });
         return pc;
     }
