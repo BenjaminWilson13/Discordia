@@ -11,7 +11,7 @@ import ChannelMessages from "./components/ChannelMessages";
 import ServerUserList from "./components/ServerUserList";
 import ExploreServers from "./components/ExploreServers";
 import LogoutNav from "./components/LogoutNav";
-import DeveloperList from "./components/DeveloperList"
+import DeveloperList from "./components/DeveloperList";
 import AllServersList from "./components/AllServersList";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import VoiceChannels from "./components/VoiceChannels";
@@ -68,8 +68,10 @@ function App() {
               <Navigation isLoaded={isLoaded} />
               <ChannelList
                 voiceState={voiceState}
-                setVoiceState={setVoiceState} />
-              <VoiceChannels callStarted={callStarted}
+                setVoiceState={setVoiceState}
+              />
+              <VoiceChannels
+                callStarted={callStarted}
                 callButtonFunction={callButtonFunction}
                 setCallStarted={setCallStarted}
                 addScreenToStream={addScreenToStream}
@@ -87,9 +89,11 @@ function App() {
                 setVoiceState={setVoiceState}
                 localAudioRef={localAudioRef}
                 micMuted={micMuted}
-                setMicMuted={setMicMuted} />
+                setMicMuted={setMicMuted}
+              />
               <ServerUserList />
-              <LogoutNav callStarted={callStarted}
+              <LogoutNav
+                callStarted={callStarted}
                 callButtonFunction={callButtonFunction}
                 setCallStarted={setCallStarted}
                 addScreenToStream={addScreenToStream}
@@ -104,10 +108,11 @@ function App() {
                 resolution={resolution}
                 setResolution={setResolution}
                 voiceState={voiceState}
-                setVoiceState={setVoiceState} 
+                setVoiceState={setVoiceState}
                 localAudioRef={localAudioRef}
                 micMuted={micMuted}
-                setMicMuted={setMicMuted} />
+                setMicMuted={setMicMuted}
+              />
             </ProtectedRoute>
             <ProtectedRoute exact path="/channels/:serverId/:channelId">
               <Navigation isLoaded={isLoaded} />
@@ -121,7 +126,7 @@ function App() {
               <ExploreServers />
             </ProtectedRoute>
             <Route>
-              <Redirect to='/home' />
+              <Redirect to="/home" />
             </Route>
           </Switch>
         </>
