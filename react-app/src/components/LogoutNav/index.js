@@ -4,7 +4,6 @@ import * as sessionActions from "../../store/session";
 import { useHistory } from "react-router-dom";
 import "./LogoutNav.css";
 import EditUserIcon from "../EditUserIcon";
-import { useState } from "react";
 import ResolutionModal from "../ResolutionModal";
 
 export default function LogoutNav({
@@ -30,8 +29,6 @@ export default function LogoutNav({
   const dispatch = useDispatch();
   const isVoiceChannel =
     window.location.pathname.split("/")[1] === "voiceChannel";
-
-  const [component, refreshComponent] = useState(true);
   const sessionUser = useSelector((state) => state.session.user);
 
   const logout = (e) => {

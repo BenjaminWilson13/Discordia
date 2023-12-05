@@ -1,12 +1,11 @@
 import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { useModal } from "../../context/Modal";
 import { useHistory } from "react-router-dom";
 import {
   deleteChannelByChannelId,
   putEditVoiceChannelByChannelId,
 } from "../../store/voiceChannels";
-import { useParams } from "react-router-dom/cjs/react-router-dom.min";
 
 export default function EditVoiceChannelModal(props) {
   const [errors, setErrors] = useState({});

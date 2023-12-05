@@ -16,7 +16,6 @@ export default function EditChannelModal(props) {
     groupNames,
     groupIds,
     defaultChannel,
-    voiceChannel,
   } = props;
   const dispatch = useDispatch();
   const [errors, setErrors] = useState([]);
