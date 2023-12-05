@@ -29,6 +29,7 @@ function App() {
   const [resolution, setResolution] = useState("1080p");
   const [callStarted, setCallStarted] = useState(false);
   const [voiceState, setVoiceState] = useState({});
+  const [micMuted, setMicMuted] = useState(false);
   const localAudioRef = useRef(null);
 
   useEffect(() => {
@@ -84,7 +85,9 @@ function App() {
                 setResolution={setResolution}
                 voiceState={voiceState}
                 setVoiceState={setVoiceState}
-                localAudioRef={localAudioRef} />
+                localAudioRef={localAudioRef}
+                micMuted={micMuted}
+                setMicMuted={setMicMuted} />
               <ServerUserList />
               <LogoutNav callStarted={callStarted}
                 callButtonFunction={callButtonFunction}
@@ -102,7 +105,9 @@ function App() {
                 setResolution={setResolution}
                 voiceState={voiceState}
                 setVoiceState={setVoiceState} 
-                localAudioRef={localAudioRef} />
+                localAudioRef={localAudioRef}
+                micMuted={micMuted}
+                setMicMuted={setMicMuted} />
             </ProtectedRoute>
             <ProtectedRoute exact path="/channels/:serverId/:channelId">
               <Navigation isLoaded={isLoaded} />

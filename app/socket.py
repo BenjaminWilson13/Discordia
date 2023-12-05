@@ -10,9 +10,15 @@ from engineio.payload import Payload
 Payload.max_decode_packets = 1000
 
 voice_channel_users = {}
-# const server_list = {
-#         <voice_channel_users> : [[channel_id, user_id], [channel_id, user_id]]
+# voice_channel_users = {
+#         <server_id> : [[channel_id, user_id], [channel_id, user_id]]
+#       } the [channel_id, user_id] are tuples.
+
+# reply = {
+#     <channel_id>: [<user_id>, <user_id>]
 # }
+
+
 
 
 # configure allowed cors origin
@@ -22,7 +28,7 @@ else:
     origins = "*"
 
 # create your socketIO instance
-socketio = SocketIO(cors_allowed_origin=origins)
+socketio = SocketIO(cors_allowed_origin=origins, ping_timeout=120, ping_interval=60000)
 
 @socketio.on('lookingAtServer')
 def users_in_voice(message):

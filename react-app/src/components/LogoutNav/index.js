@@ -7,11 +7,11 @@ import EditUserIcon from "../EditUserIcon";
 import { useState } from 'react';
 import ResolutionModal from '../ResolutionModal';
 
-export default function LogoutNav({ localAudioRef, callStarted, setCallStarted, addScreenToStream, callButtonFunction, addWebcamToStream, hideVideoFunction, sendScreen, setSendScreen, sendWebcam, setSendWebcam, videoToggle, setVideoToggle, resolution, setResolution }) {
+export default function LogoutNav({ micMuted, setMicMuted, localAudioRef, callStarted, setCallStarted, addScreenToStream, callButtonFunction, addWebcamToStream, hideVideoFunction, sendScreen, setSendScreen, sendWebcam, setSendWebcam, videoToggle, setVideoToggle, resolution, setResolution }) {
     const history = useHistory();
     const dispatch = useDispatch();
     const isVoiceChannel = window.location.pathname.split('/')[1] === "voiceChannel";
-    const [micMuted, setMicMuted] = useState(false);
+    
     const [component, refreshComponent] = useState(true);
     const sessionUser = useSelector(state => state.session.user);
 
@@ -23,8 +23,8 @@ export default function LogoutNav({ localAudioRef, callStarted, setCallStarted, 
     
     function handleMute(event) {
         event.preventDefault();
-        localAudioRef.current.getAudioTracks().forEach((track) => track.enabled = !track.enabled); 
         setMicMuted(!micMuted)
+        localAudioRef.current.getAudioTracks().forEach((track) => track.enabled = micMuted); 
     }
     
     try {

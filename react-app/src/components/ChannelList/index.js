@@ -29,6 +29,7 @@ export default function ChannelList({ voiceState, setVoiceState }) {
   useEffect(() => {
     socket.emit('lookingAtServer', { serverId })
     socket.on('usersInVoice', (data) => {
+      console.log(data)
       setVoiceUsers(data);
     })
     return () => {

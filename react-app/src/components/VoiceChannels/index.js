@@ -14,7 +14,7 @@ const Peer = require('simple-peer');
 const Hark = require('hark');
 
 
-export default function VoiceChannels({ localAudioRef, voiceState, setVoiceState, callStarted, setCallStarted, addScreenToStream, callButtonFunction, addWebcamToStream, hideVideoFunction, sendScreen, setSendScreen, sendWebcam, setSendWebcam, videoToggle, setVideoToggle }) {
+export default function VoiceChannels({ micMuted, setMicMuted, localAudioRef, voiceState, setVoiceState, callStarted, setCallStarted, addScreenToStream, callButtonFunction, addWebcamToStream, hideVideoFunction, sendScreen, setSendScreen, sendWebcam, setSendWebcam, videoToggle, setVideoToggle }) {
 
     const { serverId, channelId } = useParams();
     const localWebCamRef = useRef(null);
@@ -221,6 +221,7 @@ export default function VoiceChannels({ localAudioRef, voiceState, setVoiceState
             setVoiceState({}); 
             voiceStateRef.current = {}; 
             rtcPeers.current = {}; 
+            setMicMuted(false)
         }
     }, [channelId, serverId])
 
