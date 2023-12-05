@@ -39,10 +39,63 @@ export default function VoiceChannels({
   const stopVideoRef = useRef(null);
   const myDisplay = useRef(null);
   const currentUser = useSelector((state) => state.session.user);
-
   const callStartedRef = useRef(callStarted);
   const voiceActivity = useRef(null);
   const voiceStateRef = useRef({});
+
+  useEffect(() => {
+    if (callStarted) {
+      socket.on("newUserJoining", (data) => {
+        if (data.error) return;
+        newOffer(data, createPeerConnection(true));
+      });
+    } else {
+      socket.off("newUserJoining");
+    }
+  }, [callStarted]);
+
+  useEffect(() => {
+    socket.on("signal", (data) => {
+      if (!rtcPeers.current[data.from]) {
+        newOffer(data, createPeerConnection(false));
+        return;
+      }
+      rtcPeers.current[data.from].signal(data.signal);
+    });
+
+    socket.on("userLeavingChannel", (data) => {});
+
+    return () => {
+      socket.off("signal");
+      socket.off("userLeavingChannel");
+      socket.off("newUserJoining");
+    };
+  }, []);
+
+  useEffect(() => {
+    callButtonFunction.current();
+    return () => {
+      if (callStartedRef.current) {
+        voiceActivity.current?.stop();
+        socket.emit("userLeavingChannel", {
+          userId: currentUser.userId,
+          serverId: parseInt(serverId),
+          channelId: parseInt(channelId),
+        });
+        setCallStarted(false);
+        callStartedRef.current = false;
+        releaseDevices();
+        if (videoToggle) hideVideoFunction.current();
+        closeAllPeerConns();
+        setSendWebcam(false);
+        setSendScreen(false);
+      }
+      setVoiceState({});
+      voiceStateRef.current = {};
+      rtcPeers.current = {};
+      setMicMuted(false);
+    };
+  }, [channelId, serverId]);
 
   function createPeerConnection(initiator) {
     const pc = new Peer({
@@ -199,60 +252,6 @@ export default function VoiceChannels({
     rtcPeers.current[pc.remotePeerId] = pc;
   }
 
-  useEffect(() => {
-    if (callStarted) {
-      socket.on("newUserJoining", (data) => {
-        if (data.error) return;
-        newOffer(data, createPeerConnection(true));
-      });
-    } else {
-      socket.off("newUserJoining");
-    }
-  }, [callStarted]);
-
-  useEffect(() => {
-    socket.on("signal", (data) => {
-      if (!rtcPeers.current[data.from]) {
-        newOffer(data, createPeerConnection(false));
-        return;
-      }
-      rtcPeers.current[data.from].signal(data.signal);
-    });
-
-    socket.on("userLeavingChannel", (data) => {});
-
-    return () => {
-      socket.off("signal");
-      socket.off("userLeavingChannel");
-      socket.off("newUserJoining");
-    };
-  }, []);
-
-  useEffect(() => {
-    callButtonFunction.current();
-    return () => {
-      if (callStartedRef.current) {
-        voiceActivity.current?.stop();
-        socket.emit("userLeavingChannel", {
-          userId: currentUser.userId,
-          serverId: parseInt(serverId),
-          channelId: parseInt(channelId),
-        });
-        setCallStarted(false);
-        callStartedRef.current = false;
-        releaseDevices();
-        if (videoToggle) hideVideoFunction.current();
-        closeAllPeerConns();
-        setSendWebcam(false);
-        setSendScreen(false);
-      }
-      setVoiceState({});
-      voiceStateRef.current = {};
-      rtcPeers.current = {};
-      setMicMuted(false);
-    };
-  }, [channelId, serverId]);
-
   function destoryPeer(userId) {
     rtcPeers.current[userId].destroy();
     delete rtcPeers.current[userId];
@@ -332,6 +331,7 @@ export default function VoiceChannels({
       }
     }
   };
+
   function releaseDevices() {
     try {
       localAudioRef.current.getTracks().forEach((track) => track.stop());

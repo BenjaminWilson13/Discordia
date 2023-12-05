@@ -8,11 +8,6 @@ import EditChannelModal from "../EditChannelModal";
 import CreateChannelModal from "../CreateChannelModal";
 import EditVoiceChannelModal from "../EditVoiceChannelModal";
 import TitleBar from "../TitleBar";
-import {
-  getVoiceChannelsByServerId,
-  postNewVoiceChannelByServerId,
-} from "../../store/voiceChannels";
-import { NavLink } from "react-router-dom/cjs/react-router-dom";
 import { socket } from "../../socket";
 
 export default function ChannelList({ voiceState, setVoiceState }) {
@@ -25,7 +20,6 @@ export default function ChannelList({ voiceState, setVoiceState }) {
   const serverUsers = serverDetails[serverId]?.users;
   const allServers = useSelector((state) => state.servers.AllServers);
   const [serverDetail, setServerDetail] = useState(null);
-  const voiceChannels = useSelector((state) => state.voiceChannels.channels);
   const href = window.location.href;
   const [voiceUsers, setVoiceUsers] = useState({});
 
@@ -37,6 +31,7 @@ export default function ChannelList({ voiceState, setVoiceState }) {
     });
     return () => {
       socket.emit("leavingServer", { serverId });
+      setVoiceUsers({});
     };
   }, [serverId]);
 
@@ -47,7 +42,6 @@ export default function ChannelList({ voiceState, setVoiceState }) {
   }, [dispatch, allServers, sessionUser.userId]);
 
   useEffect(() => {
-    dispatch(getVoiceChannelsByServerId(serverId));
     if (
       (Object.keys(allServers) && !serverDetails) ||
       !serverDetails[serverId]
@@ -61,11 +55,11 @@ export default function ChannelList({ voiceState, setVoiceState }) {
   }
 
   const serverDisplay = serverDetails[serverId];
+  const { voiceChannels, groupIds } = serverDetails[serverId];
   const { channels } = serverDisplay;
-
   const groupNames = Object.keys(channels);
-  const groupIds = serverDetails[serverId].groupIds;
   let defaultChannel;
+
   if (allServers[serverId]) {
     defaultChannel = allServers[serverId].default_channel_id;
   }

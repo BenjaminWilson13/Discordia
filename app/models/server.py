@@ -66,4 +66,5 @@ class Server(db.Model):
                     user.user_id for user in self.serverUsers if user.role == "user"
                 ],
             },
+            "voiceChannels": {voice_channel.id: voice_channel.to_dict() for voice_channel in self.voice_channels}
         }
