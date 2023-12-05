@@ -41,7 +41,6 @@ def create_reply(server_id):
 
     reply = {}
     room = str(server_id) + "voiceChannelWatch"
-    print(server_id, room)
     if server_id in voice_channel_users:
         for tup in voice_channel_users[server_id]:
             if tup[0] in reply:
@@ -61,14 +60,12 @@ def users_in_voice(message):
 
 @socketio.on("signal")
 def signal_exchange(message):
-    print(message)
     room = str(message["to"]) + "user"
     emit("signal", message, to=room, skip_sid=request.sid)
 
 
 @socketio.on("userJoinedVoiceChannel")
 def newUser(message):
-    print(message)
     server_id = int(message["serverId"])
     channel_id = int(message["channelId"])
     user_id = int(message["userId"])

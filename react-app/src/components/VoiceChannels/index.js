@@ -135,7 +135,7 @@ export default function VoiceChannels({
       });
 
       pc.on("error", (error) => {
-        console.error(error);
+        // console.error(error);
       });
 
       voiceActivity.current = Hark(localAudioRef.current);
@@ -152,6 +152,7 @@ export default function VoiceChannels({
         const videoWindow = document.createElement("video");
         const audioElement = document.createElement("audio"); 
         streams.onremovetrack = () => {
+          console.log('remove track!')
           videoWindow.parentNode?.removeChild(videoWindow);
           audioElement.parentNode?.removeChild(audioElement); 
         };
@@ -442,7 +443,7 @@ export default function VoiceChannels({
           myDisplay.current.srcObject = res;
           localDisplayRef.current = res;
           for (let peerConn of Object.values(rtcPeers.current)) {
-            peerConn.addStream(res);
+            peerConn.addStream(localDisplayRef.current);
           }
         })
         .catch((err) => {
