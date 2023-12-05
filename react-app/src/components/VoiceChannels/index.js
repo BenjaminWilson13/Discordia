@@ -150,18 +150,20 @@ export default function VoiceChannels({
 
       pc.on("stream", (streams) => {
         const videoWindow = document.createElement("video");
+        const audioElement = document.createElement("audio"); 
         streams.onremovetrack = () => {
-          videoWindow.parentNode.removeChild(videoWindow);
+          videoWindow.parentNode?.removeChild(videoWindow);
+          audioElement.parentNode?.removeChild(audioElement); 
         };
         if (streams.getVideoTracks().length === 0) {
-          videoWindow.setAttribute("playsinline", "true");
-          videoWindow.setAttribute("autoplay", "true");
-          videoWindow.setAttribute("class", `user${pc.remotePeerId}VideoBox`);
-          videoWindow.setAttribute("hidden", "true");
-          videoWindow.setAttribute("type", "audio");
-          videoWindow.srcObject = streams;
+          audioElement.setAttribute("playsinline", "true");
+          audioElement.setAttribute("autoplay", "true");
+          audioElement.setAttribute("class", `user${pc.remotePeerId}VideoBox`);
+          audioElement.setAttribute("hidden", "true");
+          audioElement.setAttribute("type", "audio");
+          audioElement.srcObject = streams;
           const videoBox = document.getElementById("video-box");
-          videoBox.appendChild(videoWindow);
+          videoBox.appendChild(audioElement);
         } else {
           videoWindow.setAttribute("playsinline", "true");
           videoWindow.setAttribute("autoplay", "true");
@@ -266,6 +268,9 @@ export default function VoiceChannels({
               },
             })
             .then((res) => {
+              res.getAudioTracks().forEach((track) => {
+                track.contentHint = "speech";
+              });
               setCallStarted(true);
               callStartedRef.current = true;
               localAudioRef.current = res;
@@ -419,7 +424,16 @@ export default function VoiceChannels({
             sampleRate: sampleRate,
             frameRate: { ideal: frameRate },
           },
-          audio: { sampleRate: 160000 },
+          audio: {
+            autoGainControl: false,
+            channelCount: 2,
+            echoCancellation: false,
+            latency: 0,
+            noiseSuppression: false,
+            sampleRate: 48000,
+            sampleSize: 16,
+            volume: 1.0,
+          },
         })
         .then((res) => {
           res.getVideoTracks().forEach((track) => {
