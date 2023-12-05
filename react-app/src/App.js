@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { Route, Switch, Redirect } from "react-router-dom";
 import { authenticate } from "./store/session";
 import Navigation from "./components/Navigation";
@@ -30,6 +30,7 @@ function App() {
   const [callStarted, setCallStarted] = useState(false);
   const [voiceState, setVoiceState] = useState({});
   const [micMuted, setMicMuted] = useState(false);
+  const [voiceUsers, setVoiceUsers] = useState({});
   const localAudioRef = useRef(null);
 
   useEffect(() => {
@@ -69,6 +70,8 @@ function App() {
               <ChannelList
                 voiceState={voiceState}
                 setVoiceState={setVoiceState}
+                voiceUsers={voiceUsers}
+                setVoiceUsers={setVoiceUsers}
               />
               <VoiceChannels
                 callStarted={callStarted}
@@ -90,6 +93,7 @@ function App() {
                 localAudioRef={localAudioRef}
                 micMuted={micMuted}
                 setMicMuted={setMicMuted}
+                setVoiceUsers={setVoiceUsers}
               />
               <ServerUserList />
               <LogoutNav
@@ -116,7 +120,12 @@ function App() {
             </ProtectedRoute>
             <ProtectedRoute exact path="/channels/:serverId/:channelId">
               <Navigation isLoaded={isLoaded} />
-              <ChannelList />
+              <ChannelList
+                voiceState={voiceState}
+                setVoiceState={setVoiceState}
+                voiceUsers={voiceUsers}
+                setVoiceUsers={setVoiceUsers}
+              />
               <ChannelMessages />
               <ServerUserList />
               <LogoutNav />

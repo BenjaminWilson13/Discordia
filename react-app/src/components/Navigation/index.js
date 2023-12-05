@@ -45,14 +45,12 @@ function Navigation({ isLoaded }) {
   }, [sessionUser, dispatch]);
 
   useEffect(() => {
-    const userId = sessionUser.userId;
-
     socket.on("updateUser", (user) => {
       dispatch(userOnlineStatusUpdate(user));
     });
 
     return () => socket.disconnect();
-  }, [sessionUser]);
+  }, [sessionUser, dispatch]);
   if (!isLoaded) return <Redirect to="/" />;
   if (!servers) return null;
   const root = window.document.getElementById("root");

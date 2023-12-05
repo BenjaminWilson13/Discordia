@@ -18,14 +18,12 @@ from .models import (
 Payload.max_decode_packets = 1000
 
 voice_channel_users = {}
-# voice_channel_users = {
-#         <server_id> : [[channel_id, user_id], [channel_id, user_id]]
-#       } the [channel_id, user_id] are tuples.
+# This is the shape of the voice_channel_users dictionary,
+# it keeps track of which user is in which voice channel
 
-# reply = {
-#     <channel_id>: [<user_id>, <user_id>]
-# }
+# voice_channel_users = {server_id: [[channel_id, user_id], [channel_id, user_id]]}
 
+# the [channel_id, user_id] are tuples.
 
 # configure allowed cors origin
 if os.environ.get("FLASK_ENV") == "production":
@@ -37,80 +35,77 @@ else:
 socketio = SocketIO(cors_allowed_origin=origins, ping_timeout=120, ping_interval=60000)
 
 
-@socketio.on("lookingAtServer")
-def users_in_voice(message):
+def create_reply(server_id):
+    # reply = {channel_id: [user_id, user_id]}
+    # This is what the front end is expecting as a reply inorder to update the channel_list component
+
     reply = {}
-    message = int(message["serverId"])
-    room = str(message) + "voiceChannelWatch"
-    join_room(room)
-    if message in voice_channel_users:
-        for tup in voice_channel_users[message]:
+    room = str(server_id) + "voiceChannelWatch"
+    print(server_id, room)
+    if server_id in voice_channel_users:
+        for tup in voice_channel_users[server_id]:
             if tup[0] in reply:
                 reply[tup[0]] = [*reply[tup[0]], tup[1]]
             else:
                 reply[tup[0]] = [tup[1]]
     emit("usersInVoice", reply, to=room)
+
+
+@socketio.on("lookingAtServer")
+def users_in_voice(message):
+    server_id = int(message["serverId"])
+    room = str(server_id) + "voiceChannelWatch"
+    join_room(room)
+    create_reply(server_id)
 
 
 @socketio.on("signal")
 def signal_exchange(message):
-    user = str(message["to"]) + "user"
-    emit("signal", message, to=user, skip_sid=request.sid)
+    print(message)
+    room = str(message["to"]) + "user"
+    emit("signal", message, to=room, skip_sid=request.sid)
 
 
 @socketio.on("userJoinedVoiceChannel")
 def newUser(message):
-    if message["serverId"] in voice_channel_users:
-        voice_channel_users[message["serverId"]] = [
-            *voice_channel_users[message["serverId"]],
-            tuple([message["channelId"], message["userId"]]),
+    print(message)
+    server_id = int(message["serverId"])
+    channel_id = int(message["channelId"])
+    user_id = int(message["userId"])
+
+    if server_id in voice_channel_users:
+        voice_channel_users[server_id] = [
+            *voice_channel_users[server_id],
+            tuple([channel_id, user_id]),
         ]
     else:
-        voice_channel_users[message["serverId"]] = [
-            tuple([message["channelId"], message["userId"]])
-        ]
-    join_room(message["channelId"])
+        voice_channel_users[server_id] = [tuple([channel_id, user_id])]
+
+    join_room(channel_id)
     join_room(str(current_user.id) + "user")
+
     emit(
         "newUserJoining",
         {"from": current_user.id},
         skip_sid=request.sid,
-        to=message["channelId"],
+        to=channel_id,
     )
 
-    reply = {}
-    server_id = int(message["serverId"])
-    if server_id in voice_channel_users:
-        for tup in voice_channel_users[server_id]:
-            if tup[0] in reply:
-                reply[tup[0]] = [*reply[tup[0]], tup[1]]
-            else:
-                reply[tup[0]] = [tup[1]]
-    room = str(server_id) + "voiceChannelWatch"
-    emit("usersInVoice", reply, to=room)
+    create_reply(server_id)
 
 
 @socketio.on("userLeavingChannel")
 def leaveChannel(message):
-    voice_channel_users[message["serverId"]] = [
-        tup
-        for tup in voice_channel_users[message["serverId"]]
-        if tup[1] != message["userId"]
-    ]
-    leave_room(message["channelId"])
-    leave_room(str(current_user.id) + "user")
-    emit("userLeavingChannel", message, to=message["channelId"])
-
-    reply = {}
     server_id = int(message["serverId"])
-    if server_id in voice_channel_users:
-        for tup in voice_channel_users[server_id]:
-            if tup[0] in reply:
-                reply[tup[0]] = [*reply[tup[0]], tup[1]]
-            else:
-                reply[tup[0]] = [tup[1]]
-    room = str(server_id) + "voiceChannelWatch"
-    emit("usersInVoice", reply, to=room)
+    channel_id = int(message["channelId"])
+    voice_channel_users[server_id] = [
+        tup for tup in voice_channel_users[server_id] if tup[1] != message["userId"]
+    ]
+    leave_room(channel_id)
+    leave_room(str(current_user.id) + "user")
+    emit("userLeavingChannel", message, to=channel_id)
+
+    create_reply(server_id)
 
 
 @socketio.on_error_default
@@ -132,20 +127,14 @@ def disconnect():
     emit("updateUser", [current_user.id, "offline"], broadcast=True)
     leave_room(str(current_user.id) + "direct_message")
     db.session.commit()
+
     for server in voice_channel_users:
         voice_channel_users[server] = [
             tup for tup in voice_channel_users[server] if tup[1] != current_user.id
         ]
 
     for server_id in voice_channel_users.keys():
-        reply = {}
-        for tup in voice_channel_users[server_id]:
-            if tup[0] in reply:
-                reply[tup[0]] = [*reply[tup[0]], tup[1]]
-            else:
-                reply[tup[0]] = [tup[1]]
-        room = str(server_id) + "voiceChannelWatch"
-        emit("usersInVoice", reply, to=room)
+        create_reply(server_id)
 
 
 # handle direct messages - parameter is bananable but must use the same in the front end

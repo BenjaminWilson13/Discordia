@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { useParams, useHistory } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import "./ChannelList.css";
@@ -8,14 +8,9 @@ import EditChannelModal from "../EditChannelModal";
 import CreateChannelModal from "../CreateChannelModal";
 import EditVoiceChannelModal from "../EditVoiceChannelModal";
 import TitleBar from "../TitleBar";
-import {
-  getVoiceChannelsByServerId,
-  postNewVoiceChannelByServerId,
-} from "../../store/voiceChannels";
-import { NavLink } from "react-router-dom/cjs/react-router-dom";
 import { socket } from "../../socket";
 
-export default function ChannelList({ voiceState, setVoiceState }) {
+export default function ChannelList({ voiceUsers, setVoiceUsers, voiceState }) {
   const params = useParams();
   const history = useHistory();
   const { serverId, channelId } = params;
@@ -24,21 +19,18 @@ export default function ChannelList({ voiceState, setVoiceState }) {
   const serverDetails = useSelector((state) => state.servers.ServerDetails);
   const serverUsers = serverDetails[serverId]?.users;
   const allServers = useSelector((state) => state.servers.AllServers);
-  const [serverDetail, setServerDetail] = useState(null);
-  const voiceChannels = useSelector((state) => state.voiceChannels.channels);
   const href = window.location.href;
-  const [voiceUsers, setVoiceUsers] = useState({});
 
   useEffect(() => {
     socket.emit("lookingAtServer", { serverId });
     socket.on("usersInVoice", (data) => {
-      console.log(data);
       setVoiceUsers(data);
     });
     return () => {
       socket.emit("leavingServer", { serverId });
+      setVoiceUsers({});
     };
-  }, [serverId]);
+  }, [serverId, setVoiceUsers]);
 
   useEffect(() => {
     if (!Object.keys(allServers).length) {
@@ -47,7 +39,6 @@ export default function ChannelList({ voiceState, setVoiceState }) {
   }, [dispatch, allServers, sessionUser.userId]);
 
   useEffect(() => {
-    dispatch(getVoiceChannelsByServerId(serverId));
     if (
       (Object.keys(allServers) && !serverDetails) ||
       !serverDetails[serverId]
@@ -61,11 +52,11 @@ export default function ChannelList({ voiceState, setVoiceState }) {
   }
 
   const serverDisplay = serverDetails[serverId];
+  const { voiceChannels, groupIds } = serverDetails[serverId];
   const { channels } = serverDisplay;
-
   const groupNames = Object.keys(channels);
-  const groupIds = serverDetails[serverId].groupIds;
   let defaultChannel;
+
   if (allServers[serverId]) {
     defaultChannel = allServers[serverId].default_channel_id;
   }
@@ -224,7 +215,7 @@ export default function ChannelList({ voiceState, setVoiceState }) {
                 <span
                   id="channel"
                   style={
-                    voiceChannel.id == channelId &&
+                    voiceChannel.id === parseInt(channelId) &&
                     href.includes("voiceChannel")
                       ? { color: "white", fontWeight: "bold" }
                       : {}
@@ -258,6 +249,7 @@ export default function ChannelList({ voiceState, setVoiceState }) {
                     <div className="vc-left">
                       <img
                         className="vc-profile-img"
+                        alt="A user's profile icon"
                         style={
                           voiceState && voiceState[user] === "true"
                             ? { border: "2px green solid" }

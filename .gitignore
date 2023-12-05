@@ -13,3 +13,4 @@ Pipfile.lock
 /app/seeds/__pycache__
 .venv
 .vscode
+.trunk

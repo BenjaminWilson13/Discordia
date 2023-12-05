@@ -1,23 +1,15 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
-import { getChannelMessagesThunk } from "../../store/channels";
-import UpdateMessageModal from "../UpdateMessageModal";
-import MessageDetails from "../MessageDetails";
-import OpenModalButton from "../OpenModalButton";
-import socketio from "socket.io-client";
+import { useSelector } from "react-redux";
 import { socket } from "../../socket";
 import "./VoiceChannels.css";
-import { getApiIceServers } from "../../store/voiceChannels";
 import { setMediaBitrate } from "./setMediaBitrate";
 const Peer = require("simple-peer");
 const Hark = require("hark");
 
 export default function VoiceChannels({
-  micMuted,
   setMicMuted,
   localAudioRef,
-  voiceState,
   setVoiceState,
   callStarted,
   setCallStarted,
@@ -31,6 +23,7 @@ export default function VoiceChannels({
   setSendWebcam,
   videoToggle,
   setVideoToggle,
+  setVoiceUsers,
 }) {
   const { serverId, channelId } = useParams();
   const localWebCamRef = useRef(null);
@@ -38,220 +31,174 @@ export default function VoiceChannels({
   const rtcPeers = useRef({});
   const stopVideoRef = useRef(null);
   const myDisplay = useRef(null);
-  const currentUser = useSelector((state) => state.session.user);
-
+  const userId = useSelector((state) => state.session.user.userId);
   const callStartedRef = useRef(callStarted);
   const voiceActivity = useRef(null);
   const voiceStateRef = useRef({});
 
-  function createPeerConnection(initiator) {
-    const pc = new Peer({
-      initiator,
-      stream: localAudioRef.current,
-      config: {
-        iceServers: [
-          {
-            urls: "stun:stun.relay.metered.ca:80",
-          },
-          {
-            urls: "turn:a.relay.metered.ca:80",
-            username: "f8da8920e5a37b37131a989b",
-            credential: "4IBYYZ5g8t+M2bkP",
-          },
-          {
-            urls: "turn:a.relay.metered.ca:80?transport=tcp",
-            username: "f8da8920e5a37b37131a989b",
-            credential: "4IBYYZ5g8t+M2bkP",
-          },
-          {
-            urls: "turn:a.relay.metered.ca:443",
-            username: "f8da8920e5a37b37131a989b",
-            credential: "4IBYYZ5g8t+M2bkP",
-          },
-          {
-            urls: "turn:a.relay.metered.ca:443?transport=tcp",
-            username: "f8da8920e5a37b37131a989b",
-            credential: "4IBYYZ5g8t+M2bkP",
-          },
-        ],
-      },
-      sdpTransform: (sdp) => {
-        const sdp2 = setMediaBitrate(
-          setMediaBitrate(sdp, "video", 68000000),
-          "audio",
-          520000,
-        );
-        return sdp2.replace(
-          "useinbandfec=1",
-          "useinbandfec=1; stereo=1; maxaveragebitrate=520000",
-        );
-      },
-      reconnectTimer: 5000,
-      offerOptions: {
-        offerToReceiveAudio: true,
-        offerToReceiveVideo: true,
-      },
-      answerOptions: {
-        offerToReceiveAudio: true,
-        offerToReceiveVideo: true,
-      },
-    });
-    return pc;
-  }
-
-  async function newOffer(data, pc) {
-    pc.remotePeerId = data.from;
-
-    if (data.signal) pc.signal(data.signal);
-
-    pc.on("signal", (signal) => {
-      socket.emit("signal", {
-        signal,
-        to: data.from,
-        from: currentUser.userId,
-      });
-    });
-
-    pc.on("connect", () => {
-      if (stopVideoRef.current) {
-        pc.addStream(stopVideoRef.current);
-      }
-      if (localDisplayRef.current) {
-        pc.addStream(localDisplayRef.current);
-      }
-    });
-
-    pc.on("data", (data) => {
-      const string = new TextDecoder().decode(data);
-      const newState = { ...voiceStateRef.current };
-      newState[pc.remotePeerId] = string;
-      setVoiceState(newState);
-      voiceStateRef.current = newState;
-    });
-
-    pc.on("close", () => {
-      try {
-        destoryPeer(pc.remotePeerId);
-        voiceActivity.current.stop();
-      } catch (e) {}
-    });
-
-    pc.on("error", (error) => {
-      console.error(error);
-    });
-
-    voiceActivity.current = Hark(localAudioRef.current);
-    voiceActivity.current.on("speaking", () => {
-      pc?.write("true");
-    });
-
-    voiceActivity.current.on("stopped_speaking", () => {
-      pc?.write("false");
-    });
-
-    pc.on("stream", (streams) => {
-      const videoWindow = document.createElement("video");
-      streams.onremovetrack = () => {
-        videoWindow.parentNode.removeChild(videoWindow);
-      };
-      if (streams.getVideoTracks().length === 0) {
-        videoWindow.setAttribute("playsinline", "true");
-        videoWindow.setAttribute("autoplay", "true");
-        videoWindow.setAttribute("class", `user${pc.remotePeerId}VideoBox`);
-        videoWindow.setAttribute("hidden", "true");
-        videoWindow.setAttribute("type", "audio");
-        videoWindow.srcObject = streams;
-        const videoBox = document.getElementById("video-box");
-        videoBox.appendChild(videoWindow);
-      } else {
-        videoWindow.setAttribute("playsinline", "true");
-        videoWindow.setAttribute("autoplay", "true");
-        videoWindow.setAttribute("class", `user${pc.remotePeerId}VideoBox`);
-        videoWindow.setAttribute("type", "video");
-        videoWindow.setAttribute("controls", "true");
-        //an array of event types for wider compatibility
-        const events = [
-          "fullscreenchange",
-          "webkitfullscreenchange",
-          "mozfullscreenchange",
-          "msfullscreenchange",
-        ];
-        events.forEach((eventType) =>
-          document.addEventListener(
-            eventType,
-            function (event) {
-              if (document.fullscreenElement) {
-                event.target.style.border = "none";
-              } else {
-                event.target.style.border = "blue 3px solid";
-              }
+  const createPeerConnection = useCallback(
+    (initiator) => {
+      const pc = new Peer({
+        initiator,
+        stream: localAudioRef.current,
+        config: {
+          iceServers: [
+            {
+              urls: "stun:stun.relay.metered.ca:80",
             },
-            true,
-          ),
-        );
-
-        videoWindow.srcObject = streams;
-        const videoBox = document.getElementById("video-box");
-        videoBox.appendChild(videoWindow);
-      }
-    });
-
-    rtcPeers.current[pc.remotePeerId] = pc;
-  }
-
-  useEffect(() => {
-    if (callStarted) {
-      socket.on("newUserJoining", (data) => {
-        if (data.error) return;
-        newOffer(data, createPeerConnection(true));
+            {
+              urls: "turn:a.relay.metered.ca:80",
+              username: "f8da8920e5a37b37131a989b",
+              credential: "4IBYYZ5g8t+M2bkP",
+            },
+            {
+              urls: "turn:a.relay.metered.ca:80?transport=tcp",
+              username: "f8da8920e5a37b37131a989b",
+              credential: "4IBYYZ5g8t+M2bkP",
+            },
+            {
+              urls: "turn:a.relay.metered.ca:443",
+              username: "f8da8920e5a37b37131a989b",
+              credential: "4IBYYZ5g8t+M2bkP",
+            },
+            {
+              urls: "turn:a.relay.metered.ca:443?transport=tcp",
+              username: "f8da8920e5a37b37131a989b",
+              credential: "4IBYYZ5g8t+M2bkP",
+            },
+          ],
+        },
+        sdpTransform: (sdp) => {
+          const sdp2 = setMediaBitrate(
+            setMediaBitrate(sdp, "video", 68000000),
+            "audio",
+            520000,
+          );
+          return sdp2.replace(
+            "useinbandfec=1",
+            "useinbandfec=1; stereo=1; maxaveragebitrate=520000",
+          );
+        },
+        reconnectTimer: 5000,
+        offerOptions: {
+          offerToReceiveAudio: true,
+          offerToReceiveVideo: true,
+        },
+        answerOptions: {
+          offerToReceiveAudio: true,
+          offerToReceiveVideo: true,
+        },
+        objectMode: true,
       });
-    } else {
-      socket.off("newUserJoining");
-    }
-  }, [callStarted]);
+      return pc;
+    },
+    [localAudioRef],
+  );
 
-  useEffect(() => {
-    socket.on("signal", (data) => {
-      if (!rtcPeers.current[data.from]) {
-        newOffer(data, createPeerConnection(false));
-        return;
+  const newOffer = useCallback(
+    (data, pc) => {
+      pc.remotePeerId = data.from;
+
+      if (data.signal) {
+        pc.signal(data.signal);
       }
-      rtcPeers.current[data.from].signal(data.signal);
-    });
 
-    socket.on("userLeavingChannel", (data) => {});
-
-    return () => {
-      socket.off("signal");
-      socket.off("userLeavingChannel");
-      socket.off("newUserJoining");
-    };
-  }, []);
-
-  useEffect(() => {
-    callButtonFunction.current();
-    return () => {
-      if (callStartedRef.current) {
-        voiceActivity.current?.stop();
-        socket.emit("userLeavingChannel", {
-          userId: currentUser.userId,
-          serverId: parseInt(serverId),
-          channelId: parseInt(channelId),
+      pc.on("signal", (signal) => {
+        socket.emit("signal", {
+          signal,
+          to: data.from,
+          from: userId,
         });
-        setCallStarted(false);
-        callStartedRef.current = false;
-        releaseDevices();
-        if (videoToggle) hideVideoFunction.current();
-        closeAllPeerConns();
-        setSendWebcam(false);
-        setSendScreen(false);
-      }
-      setVoiceState({});
-      voiceStateRef.current = {};
-      rtcPeers.current = {};
-      setMicMuted(false);
-    };
-  }, [channelId, serverId]);
+      });
+
+      pc.on("connect", () => {
+        if (stopVideoRef.current) {
+          pc.addStream(stopVideoRef.current);
+        }
+        if (localDisplayRef.current) {
+          pc.addStream(localDisplayRef.current);
+        }
+      });
+
+      pc.on("data", (data) => {
+        const newState = { ...voiceStateRef.current };
+        newState[pc.remotePeerId] = data;
+        setVoiceState(newState);
+        voiceStateRef.current = newState;
+      });
+
+      pc.on("close", () => {
+        try {
+          destoryPeer(pc.remotePeerId);
+          voiceActivity.current.stop();
+        } catch (e) {}
+      });
+
+      pc.on("error", (error) => {
+        console.error(error);
+      });
+
+      voiceActivity.current = Hark(localAudioRef.current);
+      voiceActivity.current.setThreshold(-75);
+      voiceActivity.current.on("speaking", () => {
+        pc?.write("true");
+      });
+
+      voiceActivity.current.on("stopped_speaking", () => {
+        pc?.write("false");
+      });
+
+      pc.on("stream", (streams) => {
+        const videoWindow = document.createElement("video");
+        streams.onremovetrack = () => {
+          videoWindow.parentNode.removeChild(videoWindow);
+        };
+        if (streams.getVideoTracks().length === 0) {
+          videoWindow.setAttribute("playsinline", "true");
+          videoWindow.setAttribute("autoplay", "true");
+          videoWindow.setAttribute("class", `user${pc.remotePeerId}VideoBox`);
+          videoWindow.setAttribute("hidden", "true");
+          videoWindow.setAttribute("type", "audio");
+          videoWindow.srcObject = streams;
+          const videoBox = document.getElementById("video-box");
+          videoBox.appendChild(videoWindow);
+        } else {
+          videoWindow.setAttribute("playsinline", "true");
+          videoWindow.setAttribute("autoplay", "true");
+          videoWindow.setAttribute("class", `user${pc.remotePeerId}VideoBox`);
+          videoWindow.setAttribute("type", "video");
+          videoWindow.setAttribute("controls", "true");
+          //an array of event types for wider compatibility
+          const events = [
+            "fullscreenchange",
+            "webkitfullscreenchange",
+            "mozfullscreenchange",
+            "msfullscreenchange",
+          ];
+          events.forEach((eventType) =>
+            document.addEventListener(
+              eventType,
+              function (event) {
+                if (document.fullscreenElement) {
+                  event.target.style.border = "none";
+                } else {
+                  event.target.style.border = "blue 3px solid";
+                }
+              },
+              true,
+            ),
+          );
+
+          videoWindow.srcObject = streams;
+          const videoBox = document.getElementById("video-box");
+          videoBox.appendChild(videoWindow);
+        }
+      });
+
+      rtcPeers.current[pc.remotePeerId] = pc;
+    },
+    [localAudioRef, userId, setVoiceState],
+  );
 
   function destoryPeer(userId) {
     rtcPeers.current[userId].destroy();
@@ -268,71 +215,7 @@ export default function VoiceChannels({
     }
   }
 
-  callButtonFunction.current = (event) => {
-    if (event) event.preventDefault();
-    if (callStartedRef.current) {
-      socket.emit("userLeavingChannel", {
-        userId: currentUser.userId,
-        serverId: parseInt(serverId),
-        channelId: parseInt(channelId),
-      });
-      setCallStarted(false);
-      callStartedRef.current = false;
-      releaseDevices();
-      if (videoToggle) hideVideoFunction.current();
-      closeAllPeerConns();
-      setSendWebcam(false);
-      setSendScreen(false);
-      setVoiceState({});
-      voiceStateRef.current = {};
-    } else {
-      try {
-        navigator.mediaDevices
-          .getUserMedia({
-            video: false,
-            audio: {
-              autoGainControl: false,
-              channelCount: 2,
-              echoCancellation: false,
-              latency: 0,
-              noiseSuppression: false,
-              sampleRate: 48000,
-              sampleSize: 16,
-              volume: 1.0,
-            },
-          })
-          .then((res) => {
-            setCallStarted(true);
-            callStartedRef.current = true;
-            localAudioRef.current = res;
-            const voiceActivity = Hark(res);
-            voiceActivity.on("speaking", () => {
-              const newState = { ...voiceStateRef.current };
-              newState[currentUser.userId] = "true";
-              setVoiceState(newState);
-              voiceStateRef.current = newState;
-            });
-            voiceActivity.on("stopped_speaking", () => {
-              const newState = { ...voiceStateRef.current };
-              newState[currentUser.userId] = "false";
-              setVoiceState(newState);
-              voiceStateRef.current = newState;
-            });
-            socket.emit("userJoinedVoiceChannel", {
-              userId: currentUser.userId,
-              serverId: parseInt(serverId),
-              channelId: parseInt(channelId),
-            });
-          });
-      } catch (e) {
-        console.log(
-          "Can't start a voice call without a microphone! Or there was a problem with your microphone!",
-        );
-        console.error(e);
-      }
-    }
-  };
-  function releaseDevices() {
+  const releaseDevices = useCallback(() => {
     try {
       localAudioRef.current.getTracks().forEach((track) => track.stop());
       stopVideoRef.current.getTracks().forEach((track) => {
@@ -346,20 +229,104 @@ export default function VoiceChannels({
       const tracks = localDisplayRef.current.getTracks();
       tracks.forEach((track) => track.stop());
     } catch (e) {}
-  }
+  }, [localAudioRef]);
 
-  hideVideoFunction.current = (event) => {
-    if (event) {
-      event.preventDefault();
-    }
-    if (videoToggle === true) {
-      document.getElementById("localVideo").hidden = true;
-      setVideoToggle(false);
-    } else {
-      document.getElementById("localVideo").hidden = false;
-      setVideoToggle(true);
-    }
-  };
+  callButtonFunction.current = useCallback(
+    (event) => {
+      if (event) event.preventDefault();
+      if (callStartedRef.current) {
+        socket.emit("userLeavingChannel", {
+          userId,
+          serverId: parseInt(serverId),
+          channelId: parseInt(channelId),
+        });
+        setCallStarted(false);
+        callStartedRef.current = false;
+        releaseDevices();
+        if (videoToggle) hideVideoFunction.current();
+        closeAllPeerConns();
+        setSendWebcam(false);
+        setSendScreen(false);
+        setVoiceState({});
+        voiceStateRef.current = {};
+      } else {
+        try {
+          navigator.mediaDevices
+            .getUserMedia({
+              video: false,
+              audio: {
+                autoGainControl: false,
+                channelCount: 2,
+                echoCancellation: false,
+                latency: 0,
+                noiseSuppression: false,
+                sampleRate: 48000,
+                sampleSize: 16,
+                volume: 1.0,
+              },
+            })
+            .then((res) => {
+              setCallStarted(true);
+              callStartedRef.current = true;
+              localAudioRef.current = res;
+              const voiceActivity = Hark(res);
+              voiceActivity.setThreshold(-75);
+              voiceActivity.on("speaking", () => {
+                const newState = { ...voiceStateRef.current };
+                newState[userId] = "true";
+                setVoiceState(newState);
+                voiceStateRef.current = newState;
+              });
+              voiceActivity.on("stopped_speaking", () => {
+                const newState = { ...voiceStateRef.current };
+                newState[userId] = "false";
+                setVoiceState(newState);
+                voiceStateRef.current = newState;
+              });
+              socket.emit("userJoinedVoiceChannel", {
+                userId,
+                serverId: parseInt(serverId),
+                channelId: parseInt(channelId),
+              });
+            });
+        } catch (e) {
+          console.log(
+            "Can't start a voice call without a microphone! Or there was a problem with your microphone!",
+          );
+          console.error(e);
+        }
+      }
+    },
+    [
+      channelId,
+      hideVideoFunction,
+      localAudioRef,
+      releaseDevices,
+      serverId,
+      setCallStarted,
+      setSendScreen,
+      setSendWebcam,
+      setVoiceState,
+      userId,
+      videoToggle,
+    ],
+  );
+
+  hideVideoFunction.current = useCallback(
+    (event) => {
+      if (event) {
+        event.preventDefault();
+      }
+      if (videoToggle === true) {
+        document.getElementById("localVideo").hidden = true;
+        setVideoToggle(false);
+      } else {
+        document.getElementById("localVideo").hidden = false;
+        setVideoToggle(true);
+      }
+    },
+    [setVideoToggle, videoToggle],
+  );
 
   addWebcamToStream.current = (event) => {
     event.preventDefault();
@@ -392,7 +359,7 @@ export default function VoiceChannels({
     } else {
       for (let peerConn of Object.values(rtcPeers.current)) {
         peerConn.removeStream(stopVideoRef.current);
-        peerConn.send(`user${currentUser.userId}webcam`);
+        peerConn.send(`user${userId}webcam`);
       }
       stopVideoRef.current.getTracks().forEach((track) => {
         track.stop();
@@ -487,6 +454,80 @@ export default function VoiceChannels({
       setSendScreen(false);
     }
   };
+
+  // Responsible for things related to initiating a new peer connection.
+  useEffect(() => {
+    if (callStarted) {
+      socket.on("newUserJoining", (data) => {
+        if (data.error) return;
+        newOffer(data, createPeerConnection(true));
+      });
+    } else {
+      socket.off("newUserJoining");
+    }
+  }, [callStarted, newOffer, createPeerConnection]);
+
+  // Responsible for thing related to recieving a new peer connection request and shutting off
+  // sockets when the component unmounts.
+  useEffect(() => {
+    socket.on("signal", (data) => {
+      if (!rtcPeers.current[data.from]) {
+        newOffer(data, createPeerConnection(false));
+        return;
+      }
+      rtcPeers.current[data.from].signal(data.signal);
+    });
+
+    socket.on("userLeavingChannel", (data) => {});
+
+    return () => {
+      socket.off("signal");
+      socket.off("userLeavingChannel");
+      socket.off("newUserJoining");
+      setVoiceUsers({});
+    };
+  }, [newOffer, createPeerConnection, setVoiceUsers]);
+
+  // Responsible for starting the call upon joining a channel,
+  // cleaning up once the component unmounts, and letting
+  // the server know the user has left a specific voice channel.
+  useEffect(() => {
+    callButtonFunction.current();
+    return () => {
+      if (callStartedRef.current) {
+        voiceActivity.current?.stop();
+        socket.emit("userLeavingChannel", {
+          userId,
+          serverId: parseInt(serverId),
+          channelId: parseInt(channelId),
+        });
+        setCallStarted(false);
+        callStartedRef.current = false;
+        releaseDevices();
+        if (videoToggle) hideVideoFunction.current();
+        closeAllPeerConns();
+        setSendWebcam(false);
+        setSendScreen(false);
+      }
+      setVoiceState({});
+      voiceStateRef.current = {};
+      rtcPeers.current = {};
+      setMicMuted(false);
+    };
+  }, [
+    channelId,
+    serverId,
+    callButtonFunction,
+    userId,
+    hideVideoFunction,
+    releaseDevices,
+    setCallStarted,
+    setMicMuted,
+    setSendScreen,
+    setSendWebcam,
+    setVoiceState,
+    videoToggle,
+  ]);
 
   return (
     <div className="voice-container">
