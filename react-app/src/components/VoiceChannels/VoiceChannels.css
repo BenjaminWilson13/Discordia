@@ -43,6 +43,11 @@ video {
   background: #555; 
 }
 
+#local-display {
+  max-width: 25%;
+  height: fit-content;
+}
+
 
 .voice-container {
   border: yellow 3px solid;

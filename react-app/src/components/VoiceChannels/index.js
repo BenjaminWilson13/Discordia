@@ -149,55 +149,52 @@ export default function VoiceChannels({
       });
 
       pc.on("stream", (streams) => {
-        for (let i = 0; i < 10; i++) {
-
-          const videoWindow = document.createElement("video");
-          const audioElement = document.createElement("audio"); 
-          streams.onremovetrack = () => {
-            console.log('remove track!')
-            videoWindow.parentNode?.removeChild(videoWindow);
-            audioElement.parentNode?.removeChild(audioElement); 
-          };
-          if (streams.getVideoTracks().length === 0) {
-            audioElement.setAttribute("playsinline", "true");
-            audioElement.setAttribute("autoplay", "true");
-            audioElement.setAttribute("class", `user${pc.remotePeerId}VideoBox`);
-            audioElement.setAttribute("hidden", "true");
-            audioElement.setAttribute("type", "audio");
-            audioElement.srcObject = streams;
-            const videoBox = document.getElementById("video-box");
-            videoBox.appendChild(audioElement);
-          } else {
-            videoWindow.setAttribute("playsinline", "true");
-            videoWindow.setAttribute("autoplay", "true");
-            videoWindow.setAttribute("class", `user${pc.remotePeerId}VideoBox`);
-            videoWindow.setAttribute("type", "video");
-            videoWindow.setAttribute("controls", "true");
-            //an array of event types for wider compatibility
-            const events = [
+        const videoWindow = document.createElement("video");
+        const audioElement = document.createElement("audio");
+        streams.onremovetrack = () => {
+          console.log("remove track!");
+          videoWindow.parentNode?.removeChild(videoWindow);
+          audioElement.parentNode?.removeChild(audioElement);
+        };
+        if (streams.getVideoTracks().length === 0) {
+          audioElement.setAttribute("playsinline", "true");
+          audioElement.setAttribute("autoplay", "true");
+          audioElement.setAttribute("class", `user${pc.remotePeerId}VideoBox`);
+          audioElement.setAttribute("hidden", "true");
+          audioElement.setAttribute("type", "audio");
+          audioElement.srcObject = streams;
+          const videoBox = document.getElementById("video-box");
+          videoBox.appendChild(audioElement);
+        } else {
+          videoWindow.setAttribute("playsinline", "true");
+          videoWindow.setAttribute("autoplay", "true");
+          videoWindow.setAttribute("class", `user${pc.remotePeerId}VideoBox`);
+          videoWindow.setAttribute("type", "video");
+          videoWindow.setAttribute("controls", "true");
+          //an array of event types for wider compatibility
+          const events = [
             "fullscreenchange",
             "webkitfullscreenchange",
             "mozfullscreenchange",
             "msfullscreenchange",
           ];
           events.forEach((eventType) =>
-          document.addEventListener(
-            eventType,
-            function (event) {
-              if (document.fullscreenElement) {
-                event.target.style.border = "none";
-              } else {
-                event.target.style.border = "blue 3px solid";
-              }
-            },
-            true,
+            document.addEventListener(
+              eventType,
+              function (event) {
+                if (document.fullscreenElement) {
+                  event.target.style.border = "none";
+                } else {
+                  event.target.style.border = "blue 3px solid";
+                }
+              },
+              true,
             ),
-            );
+          );
 
-            videoWindow.srcObject = streams;
-            const videoBox = document.getElementById("video-box");
-            videoBox.appendChild(videoWindow);
-          }
+          videoWindow.srcObject = streams;
+          const videoBox = document.getElementById("video-box");
+          videoBox.appendChild(videoWindow);
         }
       });
 
