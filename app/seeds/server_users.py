@@ -1,134 +1,94 @@
-from app.models import db, ServerUser, environment, SCHEMA, User
 from sqlalchemy.sql import text
 
+from app.models import SCHEMA, ServerUser, User, db, environment
+
+
 def seed_server_users():
-    demo1 = ServerUser(
-        user_id = 4,
-        server_id= 1,
-        role= "owner"
-    )
+    demo1 = ServerUser(user_id=4, server_id=1, role="owner")
 
-    demo2 = ServerUser(
-        user_id = 1,
-        server_id = 2,
-        role = "user"
-    )
+    demo2 = ServerUser(user_id=1, server_id=2, role="user")
 
-    demo3 = ServerUser(
-        user_id = 6,
-        server_id = 3,
-        role = "owner"
-    )
+    demo3 = ServerUser(user_id=6, server_id=3, role="owner")
 
-    demo4 = ServerUser(
-        user_id = 7,
-        server_id = 4,
-        role = "owner"
-    )
+    demo4 = ServerUser(user_id=7, server_id=4, role="owner")
 
     marnie1 = ServerUser(
-        user_id= User.query.filter(User.username == "marnie").first().id,
-        server_id = 1,
-        role = "admin"
+        user_id=User.query.filter(User.username == "marnie").first().id,
+        server_id=1,
+        role="admin",
     )
 
-    marnie2 = ServerUser(
-        user_id = 5,
-        server_id = 2,
-        role = "owner"
-    )
+    marnie2 = ServerUser(user_id=5, server_id=2, role="owner")
 
-    marnie3 = ServerUser(
-        user_id = marnie1.user_id,
-        server_id = 3,
-        role = "user"
-    )
+    marnie3 = ServerUser(user_id=marnie1.user_id, server_id=3, role="user")
 
     bobbie1 = ServerUser(
-        user_id = User.query.filter(User.username == "bobbie").first().id,
-        server_id = 1,
-        role = "user"
+        user_id=User.query.filter(User.username == "bobbie").first().id,
+        server_id=1,
+        role="user",
     )
 
-    bobbie2 = ServerUser(
-        user_id = bobbie1.user_id,
-        server_id = 2,
-        role = "admin"
-    )
+    bobbie2 = ServerUser(user_id=bobbie1.user_id, server_id=2, role="admin")
 
-    bobbie3 = ServerUser(
-        user_id = bobbie1.user_id,
-        server_id = 2,
-        role = "user"
-    )
-
+    bobbie3 = ServerUser(user_id=bobbie1.user_id, server_id=2, role="user")
 
     bev1 = ServerUser(
-        user_id = User.query.filter(User.username == "bev").first().id,
-        server_id = 4,
-        role = "user"
+        user_id=User.query.filter(User.username == "bev").first().id,
+        server_id=4,
+        role="user",
     )
 
-    bev2 = ServerUser(
-        user_id = bev1.user_id,
-        server_id = 2,
-        role = "admin"
-    )
+    bev2 = ServerUser(user_id=bev1.user_id, server_id=2, role="admin")
 
-    bev3 = ServerUser(
-        user_id = bev1.user_id,
-        server_id = 3,
-        role = "user"
-    )
+    bev3 = ServerUser(user_id=bev1.user_id, server_id=3, role="user")
 
     ben1 = ServerUser(
-        user_id = User.query.filter(User.username == "ben").first(). id,
-        server_id = 1,
-        role = "user"
+        user_id=User.query.filter(User.username == "ben").first().id,
+        server_id=1,
+        role="user",
     )
 
     jay1 = ServerUser(
-        user_id = User.query.filter(User.username == "jay").first().id,
-        server_id = 1,
-        role = "user"
+        user_id=User.query.filter(User.username == "jay").first().id,
+        server_id=1,
+        role="user",
     )
 
     mel1 = ServerUser(
-        user_id = User.query.filter(User.username == "mel").first().id,
-        server_id = 1,
-        role = "user"
-    )
-    
-    ben2 = ServerUser(
-        user_id = User.query.filter(User.username == 'ben').first().id, 
-        server_id = 5, 
-        role = 'owner'
-    )
-    
-    luis = ServerUser(
-        user_id = User.query.filter(User.username == 'leeplayj').first().id, 
-        server_id = 5, 
-        role = 'admin'
-    )
-    
-    ryan = ServerUser(
-        user_id = User.query.filter(User.username == 'bloodshot').first().id, 
-        server_id = 5, 
-        role = 'admin'
-    )
-    
-    evan = ServerUser(
-        user_id = User.query.filter(User.username == 'corvax').first().id, 
-        server_id = 5, 
-        role = 'admin'
-    )
-    
-    cameron = ServerUser(
-        user_id = User.query.filter(User.username == 'camoman13').first().id, 
-        server_id = 5, 
-        role = 'admin'
+        user_id=User.query.filter(User.username == "mel").first().id,
+        server_id=1,
+        role="user",
     )
 
+    ben2 = ServerUser(
+        user_id=User.query.filter(User.username == "ben").first().id,
+        server_id=5,
+        role="owner",
+    )
+
+    luis = ServerUser(
+        user_id=User.query.filter(User.username == "leeplayj").first().id,
+        server_id=5,
+        role="admin",
+    )
+
+    ryan = ServerUser(
+        user_id=User.query.filter(User.username == "bloodshot").first().id,
+        server_id=5,
+        role="admin",
+    )
+
+    evan = ServerUser(
+        user_id=User.query.filter(User.username == "corvax").first().id,
+        server_id=5,
+        role="admin",
+    )
+
+    cameron = ServerUser(
+        user_id=User.query.filter(User.username == "camoman13").first().id,
+        server_id=5,
+        role="admin",
+    )
 
     db.session.add(demo1)
     db.session.add(demo2)
@@ -157,7 +117,9 @@ def seed_server_users():
 
 def undo_server_users():
     if environment == "production":
-        db.session.execute(f"TRUNCATE table {SCHEMA}.server_users RESTART IDENTITY CASCADE;")
+        db.session.execute(
+            f"TRUNCATE table {SCHEMA}.server_users RESTART IDENTITY CASCADE;"
+        )
     else:
         db.session.execute(text("DELETE FROM server_users"))
 

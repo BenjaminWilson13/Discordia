@@ -1,13 +1,16 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, IntegerField
+from wtforms import IntegerField, StringField
 from wtforms.validators import DataRequired, ValidationError
+
 from app.models import Channel, User
+
 
 def channel_id_exists(form, field):
     channel_id = field.data
     channel = Channel.query.get(channel_id)
     if not channel:
         raise ValidationError("Channel does not exist")
+
 
 def user_id_exists(form, field):
     user_id = field.data
@@ -17,5 +20,7 @@ def user_id_exists(form, field):
 
 
 class PrivateChannelForm(FlaskForm):
-    channel_id = IntegerField("Channel ID", validators=[DataRequired(),channel_id_exists])
-    user_id = IntegerField("User ID", validators=[DataRequired(),user_id_exists])
+    channel_id = IntegerField(
+        "Channel ID", validators=[DataRequired(), channel_id_exists]
+    )
+    user_id = IntegerField("User ID", validators=[DataRequired(), user_id_exists])

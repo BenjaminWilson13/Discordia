@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import OpenModalButton from "../OpenModalButton";
-import "./Navigation.css"
-import DeleteServerModal from "../DeleteServerModal"
+import "./Navigation.css";
+import DeleteServerModal from "../DeleteServerModal";
 import CreateGroupModal from "../CreateGroupModal";
-import EditServerModal from "../EditSeverModal"
+import EditServerModal from "../EditSeverModal";
 
 function MenuDropdown({ serverId, serverName }) {
   const [showMenu, setShowMenu] = useState(false);
@@ -30,11 +30,11 @@ function MenuDropdown({ serverId, serverName }) {
 
   const displayName = (name) => {
     if (name.length > 14) {
-      return name.slice(0, 14) + "..."
+      return name.slice(0, 14) + "...";
     } else {
-      return name
+      return name;
     }
-  }
+  };
   const ulClassName = "server-dropdown" + (showMenu ? "" : " hidden");
   const closeMenu = () => setShowMenu(false);
 
@@ -60,13 +60,17 @@ function MenuDropdown({ serverId, serverName }) {
             buttonText="Create Group"
             className="server-menu-buttons"
             onItemClick={closeMenu}
-            modalComponent={<CreateGroupModal title="Create Group" serverId={serverId} />}
+            modalComponent={
+              <CreateGroupModal title="Create Group" serverId={serverId} />
+            }
           />
           <OpenModalButton
             buttonText="Delete Server"
             className="server-menu-buttons"
             onItemClick={closeMenu}
-            modalComponent={<DeleteServerModal serverId={serverId} serverName={serverName} />}
+            modalComponent={
+              <DeleteServerModal serverId={serverId} serverName={serverName} />
+            }
           />
         </div>
       </div>

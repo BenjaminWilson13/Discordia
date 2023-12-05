@@ -5,15 +5,13 @@ import { getChannelMessagesThunk } from "../../store/channels";
 import UpdateMessageModal from "../UpdateMessageModal";
 import MessageDetails from "../MessageDetails";
 import OpenModalButton from "../OpenModalButton";
-import { socket } from "../../socket"
+import { socket } from "../../socket";
 
 export default function ChannelMessages() {
   let dispatch = useDispatch();
   let params = useParams();
 
   let { channelId, serverId } = params;
-
-
 
   let channels = useSelector((state) => state.channels);
   let servers = useSelector((state) => state.servers.ServerDetails);
@@ -31,53 +29,54 @@ export default function ChannelMessages() {
   let [errors, setErrors] = useState({});
 
   useEffect(() => {
-    socket.emit("join_channel", {channelId}); 
+    socket.emit("join_channel", { channelId });
     dispatch(getChannelMessagesThunk(channelId)).then(() =>
-      setIsLoading(false)
+      setIsLoading(false),
     );
     return () => {
-      socket.emit("leaving_channel", {channelId})
-    }
+      socket.emit("leaving_channel", { channelId });
+    };
   }, [dispatch, channelId]);
-  
+
   useEffect(() => {
     if (channels[channelId]) {
-      setMessages(channels[channelId].sort((a, b) => {
-        if (a.id < b.id) {
-          return -1
-        }
-        return 1
-      }));
+      setMessages(
+        channels[channelId].sort((a, b) => {
+          if (a.id < b.id) {
+            return -1;
+          }
+          return 1;
+        }),
+      );
     }
   }, [channels, channelId]);
 
   useEffect(() => {
-
     socket.on("channel_message", (channel_message) => {
       //   if (channelId == channel_message.channelId) {
       //     setMessages((messages) => [...messages, channel_message]);
       //   }
-      let channelId = channel_message.channelId
+      let channelId = channel_message.channelId;
       dispatch(getChannelMessagesThunk(channelId));
     });
     socket.on("delete_channel_message", (deleted_message) => {
       //   setMessages((messages) => {
       //     return messages.filter((message) => message.id !== deleted_message.id);
       //   });
-      let channelId = deleted_message.channelId
+      let channelId = deleted_message.channelId;
       dispatch(getChannelMessagesThunk(channelId));
     });
 
     socket.on("update_channel_message", (channel_message) => {
-      let channelId = channel_message.channelId
-      console.log('new update')
+      let channelId = channel_message.channelId;
+      console.log("new update");
       dispatch(getChannelMessagesThunk(channelId));
     });
   }, [dispatch]);
 
   const handleEnter = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
-      setErrors({})
+      setErrors({});
       sendChat(e);
     }
   };
@@ -87,14 +86,13 @@ export default function ChannelMessages() {
     e.preventDefault();
     if (chatInput.length > 255 || chatInput.length < 1) {
       setErrors({ chat: "Message must be between 1 and 255 characters" });
-      return
+      return;
     } else {
       socket.emit("channel_message", {
         message: chatInput,
         user_id: currentUser.userId,
         channel_id: channelId,
       });
-
     }
 
     setChatInput("");
@@ -104,7 +102,6 @@ export default function ChannelMessages() {
     socket.emit("delete_channel_message", {
       message_id: messageId,
     });
-
   };
 
   if (isLoading) return <div className="socket-container"></div>;
@@ -128,16 +125,19 @@ export default function ChannelMessages() {
             {messages &&
               messages.map((message) => {
                 return (
-                  <div key={message.id} className="group-messages-buttons" onMouseOver={() => {
-                    const buttonbox = document.getElementById(message.id);
-                    if (buttonbox) {
-                      buttonbox.className = "message-update-buttons"
-                    }
-                  }}
+                  <div
+                    key={message.id}
+                    className="group-messages-buttons"
+                    onMouseOver={() => {
+                      const buttonbox = document.getElementById(message.id);
+                      if (buttonbox) {
+                        buttonbox.className = "message-update-buttons";
+                      }
+                    }}
                     onMouseLeave={() => {
                       const buttonbox = document.getElementById(message.id);
                       if (buttonbox) {
-                        buttonbox.className = "hidden"
+                        buttonbox.className = "hidden";
                       }
                     }}
                   >
@@ -145,7 +145,10 @@ export default function ChannelMessages() {
 
                     {message.userId === currentUser.userId && (
                       <div id={message.id} className="hidden">
-                        <button className="delete-message-button" onClick={() => deleteChat(message.id)}>
+                        <button
+                          className="delete-message-button"
+                          onClick={() => deleteChat(message.id)}
+                        >
                           <i className="fa-solid fa-trash-can"></i>
                         </button>
                         <OpenModalButton
