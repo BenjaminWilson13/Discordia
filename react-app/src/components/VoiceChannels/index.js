@@ -150,11 +150,11 @@ export default function VoiceChannels({
 
       pc.on("stream", (streams) => {
         const videoWindow = document.createElement("video");
-        const audioElement = document.createElement("audio"); 
+        const audioElement = document.createElement("audio");
         streams.onremovetrack = () => {
-          console.log('remove track!')
+          console.log("remove track!");
           videoWindow.parentNode?.removeChild(videoWindow);
-          audioElement.parentNode?.removeChild(audioElement); 
+          audioElement.parentNode?.removeChild(audioElement);
         };
         if (streams.getVideoTracks().length === 0) {
           audioElement.setAttribute("playsinline", "true");
@@ -549,12 +549,13 @@ export default function VoiceChannels({
       <div hidden={!(sendScreen || sendWebcam)}>
         {sendScreen ? "Your stream:" : null}
         <video
-          id="localDisplay"
+          id="local-display"
           autoPlay
           playsInline
           muted={true}
           ref={myDisplay}
           hidden={!sendScreen}
+          className="local-display"
         ></video>
 
         {sendWebcam ? "Your webcam:" : null}
