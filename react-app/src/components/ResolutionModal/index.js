@@ -7,8 +7,6 @@ export default function ResolutionModal({ addScreenToStream, sendScreen }) {
   const [resolution, setResolution] = useState("1080p");
   const [frameRate, setFrameRate] = useState(30);
 
-  console.log(document.getElementById("modal-content"));
-
   function handleSubmit(event) {
     closeModal();
     addScreenToStream.current(event, resolution, frameRate);
