@@ -67,7 +67,6 @@ export default function VoiceChannels({
         },
         objectMode: true,
       });
-      console.log(pc);
       return pc;
     },
     [localAudioRef],
@@ -130,7 +129,6 @@ export default function VoiceChannels({
         const videoWindow = document.createElement("video");
         const audioElement = document.createElement("audio");
         streams.onremovetrack = () => {
-          console.log("remove track!");
           videoWindow.parentNode?.removeChild(videoWindow);
           audioElement.parentNode?.removeChild(audioElement);
         };

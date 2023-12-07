@@ -19,14 +19,13 @@ import VoiceChannels from "./components/VoiceChannels";
 function App() {
   const dispatch = useDispatch();
   const [isLoaded, setIsLoaded] = useState(false);
-  const addScreenToStream = useRef({});
-  const callButtonFunction = useRef({});
-  const addWebcamToStream = useRef({});
-  const hideVideoFunction = useRef({});
+  const addScreenToStream = useRef(null);
+  const callButtonFunction = useRef(null);
+  const addWebcamToStream = useRef(null);
+  const hideVideoFunction = useRef(null);
   const [videoToggle, setVideoToggle] = useState(false);
   const [sendScreen, setSendScreen] = useState(false);
   const [sendWebcam, setSendWebcam] = useState(false);
-  const [resolution, setResolution] = useState("1080p");
   const [callStarted, setCallStarted] = useState(false);
   const [voiceState, setVoiceState] = useState({});
   const [micMuted, setMicMuted] = useState(false);
@@ -102,8 +101,6 @@ function App() {
                 hideVideoFunction={hideVideoFunction}
                 sendScreen={sendScreen}
                 sendWebcam={sendWebcam}
-                resolution={resolution}
-                setResolution={setResolution}
               />
             </ProtectedRoute>
             <ProtectedRoute exact path="/channels/:serverId/:channelId">
