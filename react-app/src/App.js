@@ -19,14 +19,13 @@ import VoiceChannels from "./components/VoiceChannels";
 function App() {
   const dispatch = useDispatch();
   const [isLoaded, setIsLoaded] = useState(false);
-  const addScreenToStream = useRef({});
-  const callButtonFunction = useRef({});
-  const addWebcamToStream = useRef({});
-  const hideVideoFunction = useRef({});
+  const addScreenToStream = useRef(null);
+  const callButtonFunction = useRef(null);
+  const addWebcamToStream = useRef(null);
+  const hideVideoFunction = useRef(null);
   const [videoToggle, setVideoToggle] = useState(false);
   const [sendScreen, setSendScreen] = useState(false);
   const [sendWebcam, setSendWebcam] = useState(false);
-  const [resolution, setResolution] = useState("1080p");
   const [callStarted, setCallStarted] = useState(false);
   const [voiceState, setVoiceState] = useState({});
   const [micMuted, setMicMuted] = useState(false);
@@ -68,63 +67,48 @@ function App() {
             <ProtectedRoute exact path="/voiceChannel/:serverId/:channelId">
               <Navigation isLoaded={isLoaded} />
               <ChannelList
-                voiceState={voiceState}
-                setVoiceState={setVoiceState}
                 voiceUsers={voiceUsers}
                 setVoiceUsers={setVoiceUsers}
+                voiceState={voiceState}
               />
               <VoiceChannels
-                callStarted={callStarted}
-                callButtonFunction={callButtonFunction}
-                setCallStarted={setCallStarted}
-                addScreenToStream={addScreenToStream}
-                addWebcamToStream={addWebcamToStream}
-                hideVideoFunction={hideVideoFunction}
-                sendScreen={sendScreen}
-                setSendScreen={setSendScreen}
-                sendWebcam={sendWebcam}
-                setSendWebcam={setSendWebcam}
-                videoToggle={videoToggle}
-                setVideoToggle={setVideoToggle}
-                resolution={resolution}
-                setResolution={setResolution}
-                voiceState={voiceState}
-                setVoiceState={setVoiceState}
-                localAudioRef={localAudioRef}
-                micMuted={micMuted}
-                setMicMuted={setMicMuted}
-                setVoiceUsers={setVoiceUsers}
+              setMicMuted={setMicMuted}
+              localAudioRef={localAudioRef}
+              setVoiceState={setVoiceState}
+              callStarted={callStarted}
+              setCallStarted={setCallStarted}
+              addScreenToStream={addScreenToStream}
+              callButtonFunction={callButtonFunction}
+              addWebcamToStream={addWebcamToStream}
+              hideVideoFunction={hideVideoFunction}
+              sendScreen={sendScreen}
+              setSendScreen={setSendScreen}
+              sendWebcam={sendWebcam}
+              setSendWebcam={setSendWebcam}
+              videoToggle={videoToggle}
+              setVideoToggle={setVideoToggle}
+              setVoiceUsers={setVoiceUsers}
               />
               <ServerUserList />
               <LogoutNav
+                micMuted={micMuted}
+                setMicMuted={setMicMuted}
+                localAudioRef={localAudioRef}
                 callStarted={callStarted}
-                callButtonFunction={callButtonFunction}
-                setCallStarted={setCallStarted}
                 addScreenToStream={addScreenToStream}
+                callButtonFunction={callButtonFunction}
                 addWebcamToStream={addWebcamToStream}
                 hideVideoFunction={hideVideoFunction}
                 sendScreen={sendScreen}
-                setSendScreen={setSendScreen}
                 sendWebcam={sendWebcam}
-                setSendWebcam={setSendWebcam}
-                videoToggle={videoToggle}
-                setVideoToggle={setVideoToggle}
-                resolution={resolution}
-                setResolution={setResolution}
-                voiceState={voiceState}
-                setVoiceState={setVoiceState}
-                localAudioRef={localAudioRef}
-                micMuted={micMuted}
-                setMicMuted={setMicMuted}
               />
             </ProtectedRoute>
             <ProtectedRoute exact path="/channels/:serverId/:channelId">
               <Navigation isLoaded={isLoaded} />
               <ChannelList
-                voiceState={voiceState}
-                setVoiceState={setVoiceState}
                 voiceUsers={voiceUsers}
                 setVoiceUsers={setVoiceUsers}
+                voiceState={voiceState}
               />
               <ChannelMessages />
               <ServerUserList />

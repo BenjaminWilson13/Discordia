@@ -11,19 +11,12 @@ export default function LogoutNav({
   setMicMuted,
   localAudioRef,
   callStarted,
-  setCallStarted,
   addScreenToStream,
   callButtonFunction,
   addWebcamToStream,
   hideVideoFunction,
   sendScreen,
-  setSendScreen,
   sendWebcam,
-  setSendWebcam,
-  videoToggle,
-  setVideoToggle,
-  resolution,
-  setResolution,
 }) {
   const history = useHistory();
   const dispatch = useDispatch();
@@ -89,10 +82,7 @@ export default function LogoutNav({
                   <OpenModalButton
                     modalComponent={
                       <ResolutionModal
-                        resolution={resolution}
-                        setResolution={setResolution}
                         addScreenToStream={addScreenToStream}
-                        sendScreen={sendScreen}
                       />
                     }
                     buttonText={

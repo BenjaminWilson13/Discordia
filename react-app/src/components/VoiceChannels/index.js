@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import { socket } from "../../socket";
 import "./VoiceChannels.css";
 import { setMediaBitrate } from "./setMediaBitrate";
+import { iceServers } from "./iceServers";
 const Peer = require("simple-peer");
 const Hark = require("hark");
 
@@ -42,31 +43,7 @@ export default function VoiceChannels({
         initiator,
         stream: localAudioRef.current,
         config: {
-          iceServers: [
-            {
-              urls: "stun:stun.relay.metered.ca:80",
-            },
-            {
-              urls: "turn:a.relay.metered.ca:80",
-              username: "f8da8920e5a37b37131a989b",
-              credential: "4IBYYZ5g8t+M2bkP",
-            },
-            {
-              urls: "turn:a.relay.metered.ca:80?transport=tcp",
-              username: "f8da8920e5a37b37131a989b",
-              credential: "4IBYYZ5g8t+M2bkP",
-            },
-            {
-              urls: "turn:a.relay.metered.ca:443",
-              username: "f8da8920e5a37b37131a989b",
-              credential: "4IBYYZ5g8t+M2bkP",
-            },
-            {
-              urls: "turn:a.relay.metered.ca:443?transport=tcp",
-              username: "f8da8920e5a37b37131a989b",
-              credential: "4IBYYZ5g8t+M2bkP",
-            },
-          ],
+          iceServers: iceServers,
         },
         sdpTransform: (sdp) => {
           const sdp2 = setMediaBitrate(
@@ -152,7 +129,6 @@ export default function VoiceChannels({
         const videoWindow = document.createElement("video");
         const audioElement = document.createElement("audio");
         streams.onremovetrack = () => {
-          console.log("remove track!");
           videoWindow.parentNode?.removeChild(videoWindow);
           audioElement.parentNode?.removeChild(audioElement);
         };
@@ -213,25 +189,13 @@ export default function VoiceChannels({
   }
 
   function closeAllPeerConns() {
-    for (let pc of Object.values(rtcPeers.current)) {
-      pc.destroy();
-    }
+    Object.values(rtcPeers.current).forEach((peer) => peer.destroy());
   }
 
   const releaseDevices = useCallback(() => {
-    try {
-      localAudioRef.current.getTracks().forEach((track) => track.stop());
-      stopVideoRef.current.getTracks().forEach((track) => {
-        track.stop();
-      });
-      localDisplayRef.current.getTracks().forEach((track) => {
-        track.stop();
-      });
-    } catch (e) {}
-    try {
-      const tracks = localDisplayRef.current.getTracks();
-      tracks.forEach((track) => track.stop());
-    } catch (e) {}
+    localAudioRef.current?.getTracks().forEach((track) => track.stop());
+    stopVideoRef.current?.getTracks().forEach((track) => track.stop());
+    localDisplayRef.current?.getTracks().forEach((track) => track.stop());
   }, [localAudioRef]);
 
   callButtonFunction.current = useCallback(
@@ -323,7 +287,7 @@ export default function VoiceChannels({
       if (event) {
         event.preventDefault();
       }
-      if (videoToggle === true) {
+      if (videoToggle) {
         document.getElementById("localVideo").hidden = true;
         setVideoToggle(false);
       } else {
@@ -504,25 +468,14 @@ export default function VoiceChannels({
   }, [newOffer, createPeerConnection, setVoiceUsers]);
 
   // Responsible for starting the call upon joining a channel,
-  // cleaning up once the component unmounts, and letting
-  // the server know the user has left a specific voice channel.
+  // cleaning up once the component unmounts, letting
+  // the server know the user has left a specific voice channel,
+  // and ending any ongoing calls gracefully by releasing devices.
   useEffect(() => {
     callButtonFunction.current();
     return () => {
       if (callStartedRef.current) {
-        voiceActivity.current?.stop();
-        socket.emit("userLeavingChannel", {
-          userId,
-          serverId: parseInt(serverId),
-          channelId: parseInt(channelId),
-        });
-        setCallStarted(false);
-        callStartedRef.current = false;
-        releaseDevices();
-        if (videoToggle) hideVideoFunction.current();
-        closeAllPeerConns();
-        setSendWebcam(false);
-        setSendScreen(false);
+        callButtonFunction.current();
       }
       setVoiceState({});
       voiceStateRef.current = {};
