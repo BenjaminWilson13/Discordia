@@ -14,16 +14,18 @@ from .models import (
     User,
     db,
 )
-
+# Had to be set higher because session descriptions were much larger in production vs 
+# local testing due to far more complex P2P connection methods. 
 Payload.max_decode_packets = 1000
 
-voice_channel_users = {}
+
 # This is the shape of the voice_channel_users dictionary,
 # it keeps track of which user is in which voice channel
 
+voice_channel_users = {}
 # voice_channel_users = {server_id: [[channel_id, user_id], [channel_id, user_id]]}
-
 # the [channel_id, user_id] are tuples.
+
 
 # configure allowed cors origin
 if os.environ.get("FLASK_ENV") == "production":

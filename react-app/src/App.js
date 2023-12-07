@@ -68,63 +68,50 @@ function App() {
             <ProtectedRoute exact path="/voiceChannel/:serverId/:channelId">
               <Navigation isLoaded={isLoaded} />
               <ChannelList
-                voiceState={voiceState}
-                setVoiceState={setVoiceState}
                 voiceUsers={voiceUsers}
                 setVoiceUsers={setVoiceUsers}
+                voiceState={voiceState}
               />
               <VoiceChannels
-                callStarted={callStarted}
-                callButtonFunction={callButtonFunction}
-                setCallStarted={setCallStarted}
-                addScreenToStream={addScreenToStream}
-                addWebcamToStream={addWebcamToStream}
-                hideVideoFunction={hideVideoFunction}
-                sendScreen={sendScreen}
-                setSendScreen={setSendScreen}
-                sendWebcam={sendWebcam}
-                setSendWebcam={setSendWebcam}
-                videoToggle={videoToggle}
-                setVideoToggle={setVideoToggle}
-                resolution={resolution}
-                setResolution={setResolution}
-                voiceState={voiceState}
-                setVoiceState={setVoiceState}
-                localAudioRef={localAudioRef}
-                micMuted={micMuted}
-                setMicMuted={setMicMuted}
-                setVoiceUsers={setVoiceUsers}
+              setMicMuted={setMicMuted}
+              localAudioRef={localAudioRef}
+              setVoiceState={setVoiceState}
+              callStarted={callStarted}
+              setCallStarted={setCallStarted}
+              addScreenToStream={addScreenToStream}
+              callButtonFunction={callButtonFunction}
+              addWebcamToStream={addWebcamToStream}
+              hideVideoFunction={hideVideoFunction}
+              sendScreen={sendScreen}
+              setSendScreen={setSendScreen}
+              sendWebcam={sendWebcam}
+              setSendWebcam={setSendWebcam}
+              videoToggle={videoToggle}
+              setVideoToggle={setVideoToggle}
+              setVoiceUsers={setVoiceUsers}
               />
               <ServerUserList />
               <LogoutNav
+                micMuted={micMuted}
+                setMicMuted={setMicMuted}
+                localAudioRef={localAudioRef}
                 callStarted={callStarted}
-                callButtonFunction={callButtonFunction}
-                setCallStarted={setCallStarted}
                 addScreenToStream={addScreenToStream}
+                callButtonFunction={callButtonFunction}
                 addWebcamToStream={addWebcamToStream}
                 hideVideoFunction={hideVideoFunction}
                 sendScreen={sendScreen}
-                setSendScreen={setSendScreen}
                 sendWebcam={sendWebcam}
-                setSendWebcam={setSendWebcam}
-                videoToggle={videoToggle}
-                setVideoToggle={setVideoToggle}
                 resolution={resolution}
                 setResolution={setResolution}
-                voiceState={voiceState}
-                setVoiceState={setVoiceState}
-                localAudioRef={localAudioRef}
-                micMuted={micMuted}
-                setMicMuted={setMicMuted}
               />
             </ProtectedRoute>
             <ProtectedRoute exact path="/channels/:serverId/:channelId">
               <Navigation isLoaded={isLoaded} />
               <ChannelList
-                voiceState={voiceState}
-                setVoiceState={setVoiceState}
                 voiceUsers={voiceUsers}
                 setVoiceUsers={setVoiceUsers}
+                voiceState={voiceState}
               />
               <ChannelMessages />
               <ServerUserList />
