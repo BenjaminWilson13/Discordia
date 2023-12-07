@@ -7,15 +7,16 @@ export default function ResolutionModal({ addScreenToStream, sendScreen }) {
   const [resolution, setResolution] = useState("1080p");
   const [frameRate, setFrameRate] = useState(30);
 
-  console.log(document.getElementById("modal-content")) 
-
+  console.log(document.getElementById("modal-content"));
 
   function handleSubmit(event) {
     closeModal();
     addScreenToStream.current(event, resolution, frameRate);
   }
   return (
-    <div id="resolution-form-container">
+    <div
+      id="resolution-form-container"
+    >
       <h1 className="form-title">Stream Options</h1>
       <form className="resolution-form-box-outer" onSubmit={handleSubmit}>
         <div className="resolution-form-box-inner">
@@ -70,10 +71,6 @@ export default function ResolutionModal({ addScreenToStream, sendScreen }) {
                 />
                 Absurd
               </label>
-              <p className="resolution-signup-labels">
-                *WARNING: Absurd requires a monster computer and nearly 100mbps
-                upload / download for you and everyone in the call.*
-              </p>
             </fieldset>
           </div>
           <div className="frame-rate-box">
@@ -109,6 +106,13 @@ export default function ResolutionModal({ addScreenToStream, sendScreen }) {
           Start Stream
         </button>
       </form>
+      <p
+        style={resolution === "absurd" ? null : { display: "none" }}
+        className="resolution-signup-labels warning-p-tag"
+      >
+        *WARNING: Absurd requires a monster computer and nearly 100mbps upload /
+        download for you and everyone in the call.*
+      </p>
     </div>
   );
 }
