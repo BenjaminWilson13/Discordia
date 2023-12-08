@@ -1,8 +1,8 @@
 import React from "react";
 import OpenModalButton from "../OpenModalButton";
-import DeleteServerModal from "../DeleteServerModal"
+import DeleteServerModal from "../DeleteServerModal";
 import CreateGroupModal from "../CreateGroupModal";
-import EditServerModal from "../EditSeverModal"
+import EditServerModal from "../EditSeverModal";
 
 function ServerDropDown({ serverId, serverName, closeMenu }) {
 

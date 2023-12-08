@@ -1,20 +1,24 @@
-from .db import db, environment, SCHEMA, add_prefix_for_prod
-from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
+from werkzeug.security import check_password_hash, generate_password_hash
+
+from .db import SCHEMA, add_prefix_for_prod, db, environment
 
 
 class User(db.Model, UserMixin):
-    __tablename__ = 'users'
+    __tablename__ = "users"
 
     if environment == "production":
-        __table_args__ = {'schema': SCHEMA}
+        __table_args__ = {"schema": SCHEMA}
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(40), nullable=False, unique=True)
     email = db.Column(db.String(255), nullable=False, unique=True)
     status = db.Column(db.String)
     hashed_password = db.Column(db.String(255), nullable=False)
-    imageUrl = db.Column(db.String(255), default="https://discordia-aa.s3.us-west-1.amazonaws.com/profile-default.jpg")
+    imageUrl = db.Column(
+        db.String(255),
+        default="https://discordia-aa.s3.us-west-1.amazonaws.com/profile-default.jpg",
+    )
 
     @property
     def password(self):
@@ -29,19 +33,25 @@ class User(db.Model, UserMixin):
 
     def to_dict(self):
         return {
-            'userId': self.id,
-            'username': self.username,
-            'email': self.email,
+            "userId": self.id,
+            "username": self.username,
+            "email": self.email,
             "userIcon": self.imageUrl,
-            "userStatus": self.status
+            "userStatus": self.status,
         }
 
-    privateChannels = db.relationship("PrivateChannel",back_populates="user")
-    channelMessageReactions = db.relationship("ChannelMessageReaction", back_populates="user")
+    privateChannels = db.relationship("PrivateChannel", back_populates="user")
+    channelMessageReactions = db.relationship(
+        "ChannelMessageReaction", back_populates="user"
+    )
     channelMessages = db.relationship("ChannelMessage", back_populates="user")
     directMessages = db.relationship("DirectMessage", back_populates="user")
-    directMessageConversationUsers = db.relationship("DirectMessageConversationUser", back_populates="user")
-    directMessageReactions = db.relationship("DirectMessageReaction", back_populates="user")
+    directMessageConversationUsers = db.relationship(
+        "DirectMessageConversationUser", back_populates="user"
+    )
+    directMessageReactions = db.relationship(
+        "DirectMessageReaction", back_populates="user"
+    )
     servers = db.relationship("Server", back_populates="owner")
     serverUsers = db.relationship("ServerUser", back_populates="user")
     server_invites = db.relationship("ServerInvite", back_populates="user", cascade="delete-orphan, all")

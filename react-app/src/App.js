@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { Route, Switch, Redirect } from "react-router-dom";
 import { authenticate } from "./store/session";
 import Navigation from "./components/Navigation";
@@ -11,7 +11,7 @@ import ChannelMessages from "./components/ChannelMessages";
 import ServerUserList from "./components/ServerUserList";
 import ExploreServers from "./components/ExploreServers";
 import LogoutNav from "./components/LogoutNav";
-import DeveloperList from "./components/DeveloperList"
+import DeveloperList from "./components/DeveloperList";
 import AllServersList from "./components/AllServersList";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import VoiceChannels from "./components/VoiceChannels";
@@ -19,16 +19,17 @@ import VoiceChannels from "./components/VoiceChannels";
 function App() {
   const dispatch = useDispatch();
   const [isLoaded, setIsLoaded] = useState(false);
-  const addScreenToStream = useRef({});
-  const callButtonFunction = useRef({});
-  const addWebcamToStream = useRef({});
-  const hideVideoFunction = useRef({});
+  const addScreenToStream = useRef(null);
+  const callButtonFunction = useRef(null);
+  const addWebcamToStream = useRef(null);
+  const hideVideoFunction = useRef(null);
   const [videoToggle, setVideoToggle] = useState(false);
   const [sendScreen, setSendScreen] = useState(false);
   const [sendWebcam, setSendWebcam] = useState(false);
-  const [resolution, setResolution] = useState("1080p");
   const [callStarted, setCallStarted] = useState(false);
   const [voiceState, setVoiceState] = useState({});
+  const [micMuted, setMicMuted] = useState(false);
+  const [voiceUsers, setVoiceUsers] = useState({});
   const localAudioRef = useRef(null);
 
   useEffect(() => {
@@ -66,47 +67,49 @@ function App() {
             <ProtectedRoute exact path="/voiceChannel/:serverId/:channelId">
               <Navigation isLoaded={isLoaded} />
               <ChannelList
+                voiceUsers={voiceUsers}
+                setVoiceUsers={setVoiceUsers}
                 voiceState={voiceState}
-                setVoiceState={setVoiceState} />
-              <VoiceChannels callStarted={callStarted}
-                callButtonFunction={callButtonFunction}
-                setCallStarted={setCallStarted}
-                addScreenToStream={addScreenToStream}
-                addWebcamToStream={addWebcamToStream}
-                hideVideoFunction={hideVideoFunction}
-                sendScreen={sendScreen}
-                setSendScreen={setSendScreen}
-                sendWebcam={sendWebcam}
-                setSendWebcam={setSendWebcam}
-                videoToggle={videoToggle}
-                setVideoToggle={setVideoToggle}
-                resolution={resolution}
-                setResolution={setResolution}
-                voiceState={voiceState}
-                setVoiceState={setVoiceState}
-                localAudioRef={localAudioRef} />
+              />
+              <VoiceChannels
+              setMicMuted={setMicMuted}
+              localAudioRef={localAudioRef}
+              setVoiceState={setVoiceState}
+              callStarted={callStarted}
+              setCallStarted={setCallStarted}
+              addScreenToStream={addScreenToStream}
+              callButtonFunction={callButtonFunction}
+              addWebcamToStream={addWebcamToStream}
+              hideVideoFunction={hideVideoFunction}
+              sendScreen={sendScreen}
+              setSendScreen={setSendScreen}
+              sendWebcam={sendWebcam}
+              setSendWebcam={setSendWebcam}
+              videoToggle={videoToggle}
+              setVideoToggle={setVideoToggle}
+              setVoiceUsers={setVoiceUsers}
+              />
               <ServerUserList />
-              <LogoutNav callStarted={callStarted}
-                callButtonFunction={callButtonFunction}
-                setCallStarted={setCallStarted}
+              <LogoutNav
+                micMuted={micMuted}
+                setMicMuted={setMicMuted}
+                localAudioRef={localAudioRef}
+                callStarted={callStarted}
                 addScreenToStream={addScreenToStream}
+                callButtonFunction={callButtonFunction}
                 addWebcamToStream={addWebcamToStream}
                 hideVideoFunction={hideVideoFunction}
                 sendScreen={sendScreen}
-                setSendScreen={setSendScreen}
                 sendWebcam={sendWebcam}
-                setSendWebcam={setSendWebcam}
-                videoToggle={videoToggle}
-                setVideoToggle={setVideoToggle}
-                resolution={resolution}
-                setResolution={setResolution}
-                voiceState={voiceState}
-                setVoiceState={setVoiceState} 
-                localAudioRef={localAudioRef} />
+              />
             </ProtectedRoute>
             <ProtectedRoute exact path="/channels/:serverId/:channelId">
               <Navigation isLoaded={isLoaded} />
-              <ChannelList />
+              <ChannelList
+                voiceUsers={voiceUsers}
+                setVoiceUsers={setVoiceUsers}
+                voiceState={voiceState}
+              />
               <ChannelMessages />
               <ServerUserList />
               <LogoutNav />
@@ -116,7 +119,7 @@ function App() {
               <ExploreServers />
             </ProtectedRoute>
             <Route>
-              <Redirect to='/home' />
+              <Redirect to="/home" />
             </Route>
           </Switch>
         </>

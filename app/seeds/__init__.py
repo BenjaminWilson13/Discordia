@@ -1,30 +1,42 @@
 from flask.cli import AppGroup
 
-from .users import seed_users, undo_users
+from app.models.db import SCHEMA, db, environment
+
 from .channel_groups import seed_channel_groups, undo_channel_groups
-from .channel_message_reactions import seed_channel_message_reactions, undo_channel_message_reactions
+from .channel_message_reactions import (
+    seed_channel_message_reactions,
+    undo_channel_message_reactions,
+)
 from .channel_messages import seed_channel_messages, undo_channel_messages
 from .channels import seed_channels, undo_channels
-from .direct_message_conversation_users import seed_direct_message_conversation_users, undo_direct_message_conversation_users
-from .direct_message_conversations import direct_message_conversation, undo_direct_message_conversation
+from .direct_message_conversation_users import (
+    seed_direct_message_conversation_users,
+    undo_direct_message_conversation_users,
+)
+from .direct_message_conversations import (
+    direct_message_conversation,
+    undo_direct_message_conversation,
+)
+from .direct_message_reactions import (
+    seed_direct_message_reactions,
+    undo_direct_message_reactions,
+)
 from .direct_messages import seed_direct_messages, undo_direct_messages
 from .private_channels import seed_private_channel_user, undo_private_channel_user
 from .server_users import seed_server_users, undo_server_users
 from .servers import seed_servers, undo_servers
-from .direct_message_reactions import seed_direct_message_reactions, undo_direct_message_reactions
+from .users import seed_users, undo_users
 from .voice_channels import seed_voice_channels, undo_voice_channels
-
-from app.models.db import db, environment, SCHEMA
 
 # Creates a seed group to hold our commands
 # So we can type `flask seed --help`
-seed_commands = AppGroup('seed')
+seed_commands = AppGroup("seed")
 
 
 # Creates the `flask seed all` command
-@seed_commands.command('all')
+@seed_commands.command("all")
 def seed():
-    if environment == 'production':
+    if environment == "production":
         # Before seeding in production, you want to run the seed undo
         # command, which will  truncate all tables prefixed with
         # the schema name (see comment in users.py undo_users function).
@@ -56,12 +68,11 @@ def seed():
     seed_direct_message_reactions()
     seed_voice_channels()
 
-
     # Add other seed functions here
 
 
 # Creates the `flask seed undo` command
-@seed_commands.command('undo')
+@seed_commands.command("undo")
 def undo():
     undo_users()
     undo_servers()

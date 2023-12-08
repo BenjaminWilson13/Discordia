@@ -1,0 +1,76 @@
+#resolution-form-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 50rem;
+  box-sizing: border-box;
+  border-radius: 35px;
+  background-color: #33343d;
+  padding: 0.5rem;
+}
+
+.resolution-form-box {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 35px;
+  background-color: #33343d;
+  padding: 0.8rem;
+  margin: 0;
+  align-items: flex-start;
+}
+
+.resolution-signup-labels {
+  width: fit-content;
+  display: flex;
+  margin-bottom: 1rem;
+  color: white;
+  gap: 1rem;
+}
+
+.resolution-form-box-outer {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.resolution-form-box-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5rem;
+  margin-left: 5rem;
+  margin-right: 5rem;
+}
+
+.resolution-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.frame-rate-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.warning-p-tag {
+  padding: 15px;
+}
+
+#resolution-form-button {
+  grid-column: 1 / span 2;
+  width: 90%;
+  height: 3.5rem;
+  border-radius: 15px;
+  background-color: #5865f2;
+  color: white;
+  text-align: center;
+  font-size: 24px;
+  cursor: pointer;
+  margin-bottom: 1rem;
+  align-self: center;
+}

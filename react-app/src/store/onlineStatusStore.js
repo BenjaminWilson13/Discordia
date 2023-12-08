@@ -1,63 +1,57 @@
-const UPDATE_USER = "status/UPDATE_USER"
-const GET_USERS_STATUS_LIST = "status/GET_USERS_STATUS_LIST"
-
-
+const UPDATE_USER = "status/UPDATE_USER";
+const GET_USERS_STATUS_LIST = "status/GET_USERS_STATUS_LIST";
 
 const updateUser = (user) => ({
-    type: UPDATE_USER,
-    payload: user
-})
+  type: UPDATE_USER,
+  payload: user,
+});
 
 const usersStatus = (users) => ({
-    type: GET_USERS_STATUS_LIST,
-    payload: users
-})
-
-
+  type: GET_USERS_STATUS_LIST,
+  payload: users,
+});
 
 export const userOnlineStatusUpdate = (user) => async (dispatch) => {
-    dispatch(updateUser(user))
-    return null;
-}
+  dispatch(updateUser(user));
+  return null;
+};
 
 export const getUsersOnlineStatus = () => async (dispatch) => {
-    const res = await fetch('/api/onlineStatus/')
-    const data = await res.json();
+  const res = await fetch("/api/onlineStatus/");
+  const data = await res.json();
 
-    if (res.ok) {
-        dispatch(usersStatus(data));
-        return null;
-    } else {
-        return data;
-    }
-}
-
-
+  if (res.ok) {
+    dispatch(usersStatus(data));
+    return null;
+  } else {
+    return data;
+  }
+};
 
 const initialState = {
-    UserStatus: {}
-}
+  UserStatus: {},
+};
 
 export default function reducer(state = initialState, action) {
-    const newState = { ...state, UserStatus: { ...state.UserStatus } }
-    switch (action.type) {
-        case UPDATE_USER:
-            /*
+  const newState = { ...state, UserStatus: { ...state.UserStatus } };
+  switch (action.type) {
+    case UPDATE_USER:
+      /*
                 expected: [<userId>, "status"]
             */
 
-            newState.UserStatus[action.payload[0]] = action.payload[1];
-            return newState;
-        case GET_USERS_STATUS_LIST:
-            /*
+      newState.UserStatus[action.payload[0]] = action.payload[1];
+      return newState;
+    case GET_USERS_STATUS_LIST:
+      /*
                 expected: {
                     <userId>: "status",
                     <userId>: "status"
                 }
             */
-            newState.UserStatus = { ...action.payload }
-            return newState;
-        default:
-            return state;
-    }
+      newState.UserStatus = { ...action.payload };
+      return newState;
+    default:
+      return state;
+  }
 }

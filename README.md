@@ -12,23 +12,20 @@
 
 ## Overview
 
+- Here is a link to the live demo: https://discordia-dz4f.onrender.com/
 
- * Here is a link to the live demo: https://discordia-dz4f.onrender.com/
+- This was a collaborative effort between 4 people: Beverly Duran, Jay Levin, Melinda Cortez, and Benjamin Wilson.
+  We had a relatively short amount of time to build out this project and worked closely together to make sure were staying on track.
 
- * This was a collaborative effort between 4 people: Beverly Duran, Jay Levin, Melinda Cortez, and Benjamin Wilson. 
- We had a relatively short amount of time to build out this project and worked closely together to make sure were staying on track. 
+- A few things we learned:
 
- * A few things we learned:
-    * How to build out a backend API server using Python
-    * Collaboration skills
-    * Leveraging web sockets to support chat messages
-    * Ways React allows multiple developers to divide up a project in to more manageable chunks and components. 
+  - How to build out a backend API server using Python
+  - Collaboration skills
+  - Leveraging web sockets to support chat messages
+  - Ways React allows multiple developers to divide up a project in to more manageable chunks and components.
 
- * A few skills we improved upon: 
-   * We greatly improved our skills with Redux in terms of building out a store, determining optimal data structures, and ensuring the reducers give new memory addresses to updated data. 
-  
-   
- 
+- A few skills we improved upon:
+  - We greatly improved our skills with Redux in terms of building out a store, determining optimal data structures, and ensuring the reducers give new memory addresses to updated data.
 
 <!-- TODO: Add a screenshot of the live project.
     1. Link to a 'live demo.'
@@ -40,33 +37,35 @@
 ### Built With
 
 <!-- TODO: List any MAJOR libraries/frameworks (e.g. React, Tailwind) with links to their homepages. -->
- * React: https://react.dev/
- * Redux: https://redux.js.org/
- * SQAlchemy: https://www.sqlalchemy.org/
- * Flask: https://flask.palletsprojects.com/en/2.3.x/
- * WTForms: https://wtforms.readthedocs.io/en/3.0.x/
 
+- React: https://react.dev/
+- Redux: https://redux.js.org/
+- SQAlchemy: https://www.sqlalchemy.org/
+- Flask: https://flask.palletsprojects.com/en/2.3.x/
+- WTForms: https://wtforms.readthedocs.io/en/3.0.x/
 
 ## Features
 
 <!-- TODO: List what specific 'user problems' that this application solves. -->
- * Real time chat between users. Either groups of users chatting simultaneously in a server or directly with one another through direct messaging. 
+
+- Real time chat between users. Either groups of users chatting simultaneously in a server or directly with one another through direct messaging.
 
 ## Contact
 
 <!-- TODO: Include icons and links to your RELEVANT, PROFESSIONAL 'DEV-ORIENTED' social media. LinkedIn and dev.to are minimum. -->
-  * Jay Levin: 
-    * LinkedIn: https://www.linkedin.com/in/jay-levin/
-    * GitHub:https://github.com/jaylevin96
-  * Beverly Duran: 
-    * LinkedIn: https://www.linkedin.com/in/beverly-duran/
-    * GitHub: https://github.com/duranbeverly
-  * Melinda Cortez:
-    * LinkedIn: https://www.linkedin.com/in/melinda-cortez-3581b0139/
-    * GitHub: https://github.com/Solita43
-  * Benjamin Wilson: 
-    * LinkedIn: https://www.linkedin.com/in/benjamin-wilson-2a39ab271/
-    * Git Hub: https://github.com/BenjaminWilson13
+
+- Jay Levin:
+  - LinkedIn: https://www.linkedin.com/in/jay-levin/
+  - GitHub:https://github.com/jaylevin96
+- Beverly Duran:
+  - LinkedIn: https://www.linkedin.com/in/beverly-duran/
+  - GitHub: https://github.com/duranbeverly
+- Melinda Cortez:
+  - LinkedIn: https://www.linkedin.com/in/melinda-cortez-3581b0139/
+  - GitHub: https://github.com/Solita43
+- Benjamin Wilson:
+  - LinkedIn: https://www.linkedin.com/in/benjamin-wilson-2a39ab271/
+  - Git Hub: https://github.com/BenjaminWilson13
 
 ## Acknowledgements
 
