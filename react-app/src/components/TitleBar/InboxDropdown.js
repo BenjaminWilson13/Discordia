@@ -6,16 +6,16 @@ function InboxDropdown() {
 
         // Start listening to the server for server sent events.
         const eventSource = new EventSource('/api/invites/listen', { withCredentials: true });
+        console.log("🍓🍓🍓🍓🍓🍓🍓🍓🍓🍓", eventSource)
 
         eventSource.onmessage = (event) => {
-
-            // const newMessage = event.data;
-            // setMessages((prevMessages) => [...prevMessages, newMessage]);
+            console.log('Received message:', event.data);
+            // Handle the message as needed
         };
 
-        eventSource.onerror = (error) => {
-            console.error('SSE error:', error);
-        };
+        eventSource.addEventListener("Server Invite", e => {
+            console.log("Server Invitation: ", e.data)
+        })
 
         return () => {
             eventSource.close();
@@ -24,7 +24,7 @@ function InboxDropdown() {
 
     return (
         <div className='inbox'>
-            <i class="fa-solid fa-inbox fa-2xs"></i>
+            <i className="fa-solid fa-inbox fa-2xs"></i>
         </div>
     )
 }

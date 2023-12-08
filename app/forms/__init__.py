@@ -12,3 +12,4 @@ from .private_channel_form import PrivateChannelForm
 from .voice_channels_form import VoiceChannelForm
 from .update_profile_image import ProfileImage
 from .voice_channels_form import VoiceChannelForm
+from .server_invites_form import ServerInviteForm

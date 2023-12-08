@@ -9,6 +9,12 @@ function ServerDropDown({ serverId, serverName, closeMenu }) {
     return (
         <>
             <OpenModalButton
+                buttonText="Invite People"
+                className="server-menu-buttons"
+                onItemClick={closeMenu}
+                modalComponent={<EditServerModal serverId={serverId} />}
+            />
+            <OpenModalButton
                 buttonText="Edit Server"
                 className="server-menu-buttons"
                 onItemClick={closeMenu}

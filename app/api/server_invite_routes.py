@@ -1,6 +1,15 @@
 from flask import Blueprint, Response, request
 from app.sse_manager import manager, format_sse
 from flask_login import current_user, login_required
+from app.models import User, db, ServerInvite, Server
+from app.api.utils import get_user_role
+from app.forms import ServerInviteForm
+import queue
+import json
+
+
+
+
 
 
 server_invite_routes = Blueprint('invites', __name__)
@@ -8,22 +17,68 @@ server_invite_routes = Blueprint('invites', __name__)
 @server_invite_routes.route('/listen')
 @login_required
 def listen():
-
+    """
+    Open connection to the server and listen for new messages
+    """
     user_id = current_user.id
     def stream():
         messages = manager.listen(user_id)  # Assume announcer.listen() returns a queue.Queue
-        while True:
-            # print('New SSE connection')
-            msg = messages.get();  # blocks until a new message arrives
-            yield f"data: {msg}\n\n"
+        try:
+            msg = messages.get(timeout=10)
+            print("🦄🦄🦄🦄🦄🦄🦄🦄🦄🦄🦄🦄🦄🦄🦄🦄", msg)
+            if msg is not None:
+                yield msg
+        except (GeneratorExit, queue.Empty):
+            print('Client disconnected', GeneratorExit)  # Log when a client disconnects
 
-    return Response(stream(), mimetype='text/event-stream')
+    response = Response(stream(), mimetype='text/event-stream')
+    response.headers['Cache-Control'] = 'no-cache'
+    response.headers['Connection'] = 'keep-alive'
 
-@server_invite_routes.route('/send_invite/<int:userId>')
+    print("🤬🤬🤬🤬🤬🤬🤬🤬🤬🤬🤬🤬🤬🤬", response)
+    return response
+
+@server_invite_routes.route('/send_invite/<int:serverId>', methods=["POST"])
 @login_required
-def send_invite(userId):
-    msg = format_sse(data='pong')
-    manager.announce(msg=msg, user_id=7)
-    return {}, 200
+def send_invite(serverId):
+    """
+        Create a new invite to the server
+
+        Expected Keys:
+        {
+            "userId": Id of the user to invite
+        }
+    """
+    server = Server.query.get(serverId)
+    role = get_user_role(current_user.id, serverId)
+
+    if role != "owner":
+        return {'errors': ['Only owners may send invites']}, 403
+    
+    
+    form = ServerInviteForm()
+    form['csrf_token'].data = request.cookies['csrf_token']
+    form["server_id"].data = serverId
+    if form.validate():
+        invite = ServerInvite(
+            user_id =form.data["user_id"],
+            server_id = serverId
+        )
+
+        db.session.add(invite)
+        db.session.commit()
+
+        # Format the msg for the server to announce
+        msg = format_sse(data=server.to_dict(), event="Server Invite")
+        # Send the message to the invited user
+        manager.announce(msg=msg, user_id=form.data["user_id"])
+        return {
+            "message": "Invitation successfully sent!"
+        }, 200
+    else:
+        errors = form.errors
+        return errors, 400
+    
+
 
 
