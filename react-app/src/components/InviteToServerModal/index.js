@@ -3,7 +3,6 @@ import { useModal } from "../../context/Modal";
 import { useDispatch, useSelector } from "react-redux";
 
 export default function InviteToServerModal({ serverId }) {
-  let currentUser = useSelector((state) => state.session.user);
   let usersObj = useSelector((state) => state.users.allUsers);
   let serverUsers = useSelector(
     (state) => state.servers.ServerDetails[serverId].users
@@ -12,12 +11,25 @@ export default function InviteToServerModal({ serverId }) {
 
   const [username, setUsername] = useState("");
   let [errors, setErrors] = useState("");
-  const dispatch = useDispatch();
   const { closeModal } = useModal();
 
   const handleSubmit = async (e) => {
-    let user = users.find((user) => user.username === username);
     e.preventDefault();
+
+    let user = users.find((user) => user.username === username);
+    const res = await fetch(`/api/invites/send_invite/${serverId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({user_id: user.userId}),
+    })
+    const data = await res.json()
+
+    if (res.ok) {
+      alert(data.message)
+      closeModal()
+    } else {
+      setErrors(data.errors)
+    }
   };
 
   let users = Object.values(usersObj).filter(
@@ -35,7 +47,7 @@ export default function InviteToServerModal({ serverId }) {
     <>
       <div id="create-server-container">
         <h1 className="create-server-title">Invite Users</h1>
-        {errors.length > 0 && <p className="errors">{errors}</p>}
+        {errors && <p className="errors">{errors}</p>}
         <form id="convo-form" className="form-box" onSubmit={handleSubmit}>
           <label className="create-server-label">
             <input
