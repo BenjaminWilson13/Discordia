@@ -3,6 +3,7 @@ import OpenModalButton from "../OpenModalButton";
 import DeleteServerModal from "../DeleteServerModal";
 import CreateGroupModal from "../CreateGroupModal";
 import EditServerModal from "../EditSeverModal";
+import InviteToServerModal from "../InviteToServerModal";
 
 function ServerDropDown({ serverId, serverName, closeMenu }) {
 
@@ -12,7 +13,7 @@ function ServerDropDown({ serverId, serverName, closeMenu }) {
                 buttonText="Invite People"
                 className="server-menu-buttons"
                 onItemClick={closeMenu}
-                modalComponent={<EditServerModal serverId={serverId} />}
+                modalComponent={<InviteToServerModal serverId={serverId} />}
             />
             <OpenModalButton
                 buttonText="Edit Server"
