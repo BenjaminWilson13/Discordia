@@ -8,6 +8,7 @@ import users from "./users";
 import channels from "./channels";
 import onlineStatus from "./onlineStatusStore";
 import voiceChannels from "./voiceChannels";
+import serverInvites from "./serverInvites";
 
 const rootReducer = combineReducers({
   session,
@@ -18,6 +19,7 @@ const rootReducer = combineReducers({
   channels,
   onlineStatus,
   voiceChannels,
+  serverInvites,
 });
 
 let enhancer;

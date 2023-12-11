@@ -1,11 +1,10 @@
 from flask import Blueprint, Response, request
 from app.sse_manager import manager, format_sse
 from flask_login import current_user, login_required
-from app.models import User, db, ServerInvite, Server
+from app.models import db, ServerInvite, Server
 from app.api.utils import get_user_role
 from app.forms import ServerInviteForm
 import queue
-import json
 
 
 
@@ -24,8 +23,7 @@ def listen():
     def stream():
         messages = manager.listen(user_id)  # Assume announcer.listen() returns a queue.Queue
         try:
-            msg = messages.get(timeout=10)
-            print("🦄🦄🦄🦄🦄🦄🦄🦄🦄🦄🦄🦄🦄🦄🦄🦄", msg)
+            msg = messages.get()
             if msg is not None:
                 yield msg
         except (GeneratorExit, queue.Empty):
@@ -35,8 +33,16 @@ def listen():
     response.headers['Cache-Control'] = 'no-cache'
     response.headers['Connection'] = 'keep-alive'
 
-    print("🤬🤬🤬🤬🤬🤬🤬🤬🤬🤬🤬🤬🤬🤬", response)
     return response
+
+@server_invite_routes.route("/")
+@login_required
+def get_invites():
+    """
+        Get all the current user's invites
+    """
+
+    return {"invites": {invite.id: invite.to_dict() for invite in current_user.server_invites}}
 
 @server_invite_routes.route('/send_invite/<int:serverId>', methods=["POST"])
 @login_required
