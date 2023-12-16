@@ -1,29 +1,29 @@
 const GET_SERVER_INVITES = "serverInvites/GET_SERVER_INVITES";
 
-// Actions
+// --------------------------Actions----------------------------------
 
 const getServerInvites = (invites) => ({
   type: GET_SERVER_INVITES,
   payload: invites,
 });
 
-// Thunks
+// --------------------------Thunks----------------------------------
 
 export const serverInvitesGet = () => async (dispatch) => {
-  const res = await fetch("/api/invites");
+  const res = await fetch("/api/invites/");
   const data = await res.json();
 
   if (res.ok) {
-    getServerInvites(data)
+    dispatch(getServerInvites(data));
   } else {
-    return data
+    return data;
   }
 };
 
-// Server Invites Initial State
+// ---------------------Server Invites Initial State----------------------------
 const initialState = {};
 
-// Server Invites Reducer
+// -----------------------Server Invites Reducer--------------------------------
 export default function reducer(state = initialState, action) {
   switch (action.type) {
     case GET_SERVER_INVITES:

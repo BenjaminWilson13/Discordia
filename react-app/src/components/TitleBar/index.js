@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
 import "./TitleBar.css";
 import DropDownButton from "../DropDownButton";
 import { useParams } from "react-router-dom/cjs/react-router-dom.min";
 import { useSelector } from "react-redux";
 import InboxDropdown from "./InboxDropdown";
+import { serverInvitesGet } from "../../store/serverInvites";
 
 function TitleBar({ title, users }) {
   const { serverId, conversationId } = useParams();
+  const sessionUser = useSelector((state) => state.session.user);
+
   const conversationUsers = useSelector((state) => state.userConversations);
   const userStatuses = useSelector((state) => state.onlineStatus.UserStatus);
   const conversation = Object.values(conversationUsers).filter((convo) => {
@@ -23,12 +27,15 @@ function TitleBar({ title, users }) {
   }
 
   const [isLoading, setIsLoading] = useState(true);
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    setIsLoading(false);
-
-    return () => setIsLoading(true);
-  }, []);
+    if (sessionUser) {
+      dispatch(serverInvitesGet());
+      setIsLoading(false);
+      return () => setIsLoading(true);
+    }
+  }, [dispatch, sessionUser]);
 
   if (isLoading)
     return (
@@ -54,7 +61,7 @@ function TitleBar({ title, users }) {
           <i className="fa-solid fa-hashtag title-icon"></i>
         )}
         <h1 className="top-title">{header}</h1>
-                <InboxDropdown />
+        <InboxDropdown />
       </div>
     </div>
   );
