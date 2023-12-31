@@ -75,3 +75,7 @@ i.fa-inbox::after {
   bottom: 18%;
   /* display: none */
 }
+
+#inbox-wrapper {
+  position: absolute;
+}

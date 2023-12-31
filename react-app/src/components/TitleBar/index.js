@@ -4,8 +4,8 @@ import "./TitleBar.css";
 import DropDownButton from "../DropDownButton";
 import { useParams } from "react-router-dom/cjs/react-router-dom.min";
 import { useSelector } from "react-redux";
-import InboxDropdown from "./InboxDropdown";
 import { serverInvitesGet } from "../../store/serverInvites";
+import OpenInboxButton from "./OpenInboxButton";
 
 function TitleBar({ title, users }) {
   const { serverId, conversationId } = useParams();
@@ -61,7 +61,7 @@ function TitleBar({ title, users }) {
           <i className="fa-solid fa-hashtag title-icon"></i>
         )}
         <h1 className="top-title">{header}</h1>
-        <InboxDropdown />
+        <OpenInboxButton />
       </div>
     </div>
   );
