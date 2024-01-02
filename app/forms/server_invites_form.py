@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import IntegerField
 from wtforms.validators import DataRequired, ValidationError
-from app.models import User, Server
+from app.models import User
 
 
 def user_id_exists(form, field):

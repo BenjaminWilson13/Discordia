@@ -26,7 +26,7 @@ const postServer = (newServer) => ({
   payload: newServer,
 });
 
-const editServer = (updated) => ({
+export const editServer = (updated) => ({
   type: EDIT_SERVER,
   payload: updated,
 });

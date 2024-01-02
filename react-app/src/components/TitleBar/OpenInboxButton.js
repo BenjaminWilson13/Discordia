@@ -1,16 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import InboxDropDown from "./InboxDropDown";
 
 function OpenInboxButton() {
-  const invites = useSelector(state => state.serverInvites)
   const [showInbox, setShowInbox] = useState(false)
   const [coords, setCoords] = useState({});
-  console.log(invites)
 
   const showHandler = (e) => {
     e.preventDefault();
-    
+
     setShowInbox(true);
 
     const rect = e.currentTarget.getBoundingClientRect();

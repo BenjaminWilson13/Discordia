@@ -269,7 +269,7 @@ def add_user_to_server(server_id):
             .to_dict()
         )
     else:
-        return form.errors
+        return form.errors, 400
 
 
 @server_routes.route("/<int:server_id>/users/<int:user_id>", methods=["PUT"])

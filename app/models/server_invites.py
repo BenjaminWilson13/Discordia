@@ -18,6 +18,6 @@ class ServerInvite(db.Model):
         return {
             "id": self.id,
             "user_id": self.user.to_dict(),
-            "server_id": self.server.to_dict(),
+            "server": self.server.to_dict(),
             "created_at": self.created_at
         }
